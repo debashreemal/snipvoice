@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { FolderKanban, Sparkles, Calendar, BarChart2, Settings } from 'lucide-react';
+import { FolderKanban, Sparkles, Calendar, BarChart2, Settings, MessageCircle } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 import SettingsModal from './SettingsModal';
 
-// Slim dark sidebar: Projects, Brand voice, Calendar, Performance, and Settings
+// Slim dark sidebar: Projects, Brand voice, Calendar, Performance, Ask SnipVoice, and Settings
 export default function Sidebar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { isAskChatOpen, setIsAskChatOpen } = useAppContext();
 
   const navItems = [
     { name: 'Projects', path: '/projects', icon: FolderKanban },
@@ -36,8 +38,19 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom Settings Link */}
+        {/* Bottom Actions: Ask SnipVoice & Settings */}
         <div className="sidebar-bottom">
+          <button
+            type="button"
+            className={`sidebar-item btn-sidebar-ask ${isAskChatOpen ? 'active' : ''}`}
+            onClick={() => setIsAskChatOpen((prev) => !prev)}
+            aria-label="Ask SnipVoice"
+            title="Ask SnipVoice"
+          >
+            <MessageCircle size={22} strokeWidth={2.2} />
+            <span className="tooltip">Ask SnipVoice</span>
+          </button>
+
           <button
             type="button"
             className="sidebar-item btn-sidebar-settings"

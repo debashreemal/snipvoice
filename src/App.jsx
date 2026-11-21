@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Sidebar from './components/Sidebar';
 import LearnedPanel from './components/LearnedPanel';
+import ChatPanel from './components/ChatPanel';
 import ProjectsPage from './pages/ProjectsPage';
 import NewProjectPage from './pages/NewProjectPage';
 import ClipsPage from './pages/ClipsPage';
@@ -48,6 +49,9 @@ export default function App() {
               <Route path="*" element={<Navigate to="/projects" replace />} />
             </Routes>
           </main>
+
+          {/* Ask SnipVoice sliding chat panel */}
+          <ChatPanel />
         </div>
       </div>
     </AppProvider>

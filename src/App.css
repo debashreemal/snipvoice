@@ -4984,3 +4984,651 @@
   gap: 8px;
   margin-bottom: 12px;
 }
+
+/* ==========================================================================
+   Ask SnipVoice Chat UI
+   Flat solid colors, no borders, no outlines, no shadows, no gradients,
+   20px corners, Inter font, strictly theme.css variables
+   ========================================================================== */
+
+/* Backdrop overlay */
+.ask-panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(18, 19, 19, 0.45);
+  z-index: 1100;
+}
+
+/* Sliding Chat Panel (420px wide on desktop, 100% on mobile) */
+.ask-chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 100%;
+  background-color: var(--frame);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius) 0 0 var(--radius);
+  border: none;
+  outline: none;
+  box-shadow: none;
+  animation: askPanelSlideIn 0.22s ease-out;
+}
+
+@keyframes askPanelSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .ask-chat-panel {
+    width: 100%;
+    border-radius: 0;
+  }
+}
+
+/* 1. Header (--card-dark) */
+.ask-panel-header {
+  background-color: var(--card-dark);
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border: none;
+}
+
+.ask-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ask-panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-on-dark);
+  line-height: 1.2;
+}
+
+.ask-panel-subline {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.ask-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-ask-header-text {
+  background-color: transparent;
+  color: var(--text-muted);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ask-header-text:hover {
+  background-color: var(--card-dark-pill);
+  color: var(--text-on-dark);
+}
+
+.btn-ask-header-close {
+  background-color: transparent;
+  color: var(--text-muted);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ask-header-close:hover {
+  background-color: var(--card-dark-pill);
+  color: var(--text-on-dark);
+}
+
+/* 2. Message Area (scrolls, newest at bottom) */
+.ask-panel-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Empty State */
+.ask-empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: auto 0;
+  padding: 10px 0;
+}
+
+.ask-empty-heading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ask-suggestions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ask-suggestion-btn {
+  background-color: var(--sky-soft);
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.ask-suggestion-btn:hover {
+  background-color: var(--sky-bright);
+}
+
+.ask-suggestion-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sky-navy);
+  flex-shrink: 0;
+}
+
+.ask-suggestion-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* Messages List */
+.ask-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ask-message-row {
+  display: flex;
+  width: 100%;
+}
+
+.ask-message-row.is-user {
+  justify-content: flex-end;
+}
+
+.ask-message-row.is-assistant {
+  justify-content: flex-start;
+}
+
+.ask-bubble {
+  border-radius: var(--radius);
+  border: none;
+  outline: none;
+  word-break: break-word;
+}
+
+/* My Messages: right aligned, --sky-bright background, --text, max-width 80% */
+.ask-user-bubble {
+  background-color: var(--sky-bright);
+  color: var(--text);
+  max-width: 80%;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* SnipVoice Answers: left aligned, --card-dark-pill background, --text-on-dark, max-width 90% */
+.ask-assistant-bubble {
+  background-color: var(--card-dark-pill);
+  color: var(--text-on-dark);
+  max-width: 90%;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ask-answer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ask-answer-summary {
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.ask-answer-summary.is-bold {
+  font-weight: 800;
+  color: var(--text-on-dark);
+}
+
+.ask-answer-bullets {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ask-answer-bullet-item {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Action Buttons row under each answer */
+.ask-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.btn-ask-action {
+  background-color: var(--card-dark);
+  color: var(--text-muted);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ask-action:hover {
+  background-color: var(--frame);
+  color: var(--text-on-dark);
+}
+
+.btn-ask-action.is-active {
+  background-color: var(--sky-deep);
+  color: var(--text-on-dark);
+}
+
+/* "Based on:" line with small tags for sources */
+.ask-sources-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.ask-sources-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ask-sources-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ask-source-tag {
+  background-color: var(--card-dark);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--radius);
+}
+
+/* Thinking Row: three animated dots and "Looking at your data..." */
+.ask-thinking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: var(--card-dark-pill);
+  border-radius: var(--radius);
+  width: fit-content;
+}
+
+.ask-thinking-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ask-thinking-dots .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--sky-bright);
+  animation: askDotPulse 1.4s infinite ease-in-out both;
+}
+
+.ask-thinking-dots .dot-1 {
+  animation-delay: -0.32s;
+}
+
+.ask-thinking-dots .dot-2 {
+  animation-delay: -0.16s;
+}
+
+.ask-thinking-dots .dot-3 {
+  animation-delay: 0s;
+}
+
+@keyframes askDotPulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.ask-thinking-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Error message state */
+.ask-error-bubble {
+  background-color: var(--reject);
+  color: var(--text);
+  max-width: 90%;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ask-error-text {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.btn-ask-retry {
+  background-color: var(--white);
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-ask-retry:hover {
+  background-color: var(--sky-soft);
+}
+
+/* 3. Input Bar Fixed at Bottom (--card-dark, 20px corners, 16px padding) */
+.ask-input-bar {
+  background-color: var(--card-dark);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: none;
+  outline: none;
+}
+
+/* Listening indicator line */
+.ask-listening-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sky-bright);
+}
+
+.ask-listening-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--reject);
+}
+
+/* Mic permission blocked callout */
+.ask-mic-error-pill {
+  background-color: var(--reject);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 11.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.35;
+}
+
+/* Text box */
+.ask-textarea-container {
+  display: flex;
+  width: 100%;
+}
+
+.ask-textarea {
+  width: 100%;
+  background-color: var(--card-dark-pill);
+  color: var(--text-on-dark);
+  border: none;
+  outline: none;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.ask-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.ask-textarea:disabled {
+  opacity: 0.6;
+}
+
+/* Controls row: voice on left, send on right */
+.ask-input-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Voice controls group */
+.voice-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Hindi | English toggle */
+.speech-lang-toggle {
+  background-color: var(--card-dark-pill);
+  border-radius: var(--radius);
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.speech-lang-btn {
+  background-color: transparent;
+  color: var(--text-muted);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.speech-lang-btn.is-selected {
+  background-color: var(--sky-bright);
+  color: var(--text);
+}
+
+.speech-lang-divider {
+  color: var(--text-muted);
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+/* Mic Button with visible text label "Speak" */
+.btn-mic {
+  background-color: var(--card-dark-pill);
+  color: var(--text-on-dark);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-mic:hover:not(:disabled) {
+  background-color: var(--sky-soft);
+  color: var(--text);
+}
+
+.btn-mic.is-listening {
+  background-color: var(--reject);
+  color: var(--text);
+}
+
+.btn-mic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Send Button: "Send" with arrow-up icon, --sky-bright */
+.btn-ask-send {
+  background-color: var(--sky-bright);
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-ask-send:hover:not(:disabled) {
+  background-color: var(--sky-baby);
+}
+
+.btn-ask-send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Bottom Sub-row: "Read answers aloud" toggle */
+.ask-read-aloud-row {
+  display: flex;
+  align-items: center;
+  padding-top: 2px;
+}
+
+.ask-read-aloud-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ask-read-aloud-checkbox {
+  accent-color: var(--sky-bright);
+  cursor: pointer;
+}
+
+/* Sidebar button styling for Ask SnipVoice */
+.btn-sidebar-ask.active {
+  background-color: var(--sky-bright);
+  color: var(--text);
+}

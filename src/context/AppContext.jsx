@@ -41,6 +41,29 @@ export function AppProvider({ children }) {
   // Global caption language mode: 'hinglish' (default) or 'english'
   const [captionLanguage, setCaptionLanguage] = useState('hinglish');
 
+  // Ask SnipVoice chat state (persisted in shared store while app is open)
+  const [isAskChatOpen, setIsAskChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [speechLang, setSpeechLang] = useState(() => {
+    try {
+      return localStorage.getItem('snipvoice_speech_lang') || 'hi-IN';
+    } catch {
+      return 'hi-IN';
+    }
+  });
+  const [readAloud, setReadAloud] = useState(false);
+
+  const updateSpeechLang = (newLang) => {
+    setSpeechLang(newLang);
+    try {
+      localStorage.setItem('snipvoice_speech_lang', newLang);
+    } catch {}
+  };
+
+  const clearChat = () => {
+    setChatMessages([]);
+  };
+
   // Reset demo data in state
   const resetDemoData = async () => {
     await apiFetch('/api/reset', {
@@ -787,6 +810,16 @@ export function AppProvider({ children }) {
         isUsingSampleData,
         updatePostMetric,
         applyPerformanceInsights,
+        // Ask SnipVoice Chat
+        isAskChatOpen,
+        setIsAskChatOpen,
+        chatMessages,
+        setChatMessages,
+        speechLang,
+        updateSpeechLang,
+        readAloud,
+        setReadAloud,
+        clearChat,
         // Backward compatibility
         clips,
         approvedClips
