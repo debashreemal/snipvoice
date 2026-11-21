@@ -2406,6 +2406,18 @@
   margin-top: 8px;
 }
 
+.slot-live-pill {
+  background-color: var(--approve);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .btn-mark-posted {
   background-color: var(--sky-bright);
   color: var(--text);
@@ -2417,10 +2429,41 @@
   font-weight: 800;
   cursor: pointer;
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease;
 }
 
 .btn-mark-posted:hover {
   background-color: var(--sky-clear);
+}
+
+.btn-retro-metrics {
+  background-color: var(--bg-subtle);
+  color: var(--text-soft);
+  border: none;
+  border-radius: var(--radius);
+  height: 40px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-retro-metrics:hover {
+  background-color: var(--sky-clear);
+  color: var(--text);
+}
+
+.slot-posted-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
 }
 
 .slot-already-posted-badge {
@@ -2428,14 +2471,46 @@
   color: var(--text);
   border-radius: var(--radius);
   height: 40px;
-  padding: 0 18px;
+  padding: 0 16px;
   font-size: 13px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
   justify-content: center;
+}
+
+.btn-update-metrics {
+  background-color: var(--white);
+  color: var(--sky-navy);
+  border: none;
+  border-radius: var(--radius);
+  height: 40px;
+  padding: 0 16px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-update-metrics:hover {
+  background-color: var(--sky-clear);
+}
+
+.slot-metrics-success-pill {
+  margin-top: 10px;
+  background-color: var(--approve);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-remove-slot {

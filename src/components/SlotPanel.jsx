@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Instagram, Linkedin, Twitter, Video, Check } from 'lucide-react';
+import { Instagram, Linkedin, Twitter, Video, Check, BarChart2, Sparkles } from 'lucide-react';
 import { WEEK_DAYS } from '../data/mock';
 
 function getPlatformIcon(platform) {
@@ -32,10 +32,11 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
   const [selectedDay, setSelectedDay] = useState(slot.day);
   const [selectedTime, setSelectedTime] = useState(slot.time);
 
-  // Small panel state for recording views and likes when marking as posted
+  // Results panel for logging 24h metrics after post has had time to perform
   const [isRecordingResults, setIsRecordingResults] = useState(false);
-  const [viewsInput, setViewsInput] = useState('54200');
-  const [likesInput, setLikesInput] = useState('3800');
+  const [viewsInput, setViewsInput] = useState(slot.views ? String(slot.views) : '');
+  const [likesInput, setLikesInput] = useState(slot.likes ? String(slot.likes) : '');
+  const [metricsSavedNotice, setMetricsSavedNotice] = useState(false);
 
   const handleDayChange = (e) => {
     const newDay = e.target.value;
@@ -49,12 +50,22 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
     onUpdate(slot.id, { time: newTime });
   };
 
-  const handleConfirmPosted = () => {
+  // 1-Click: Mark as published now (clean logic: post is live, starting at 0 views / 0 likes)
+  const handleDirectMarkPosted = () => {
+    onMarkPosted(slot.id, { views: 0, likes: 0 });
+  };
+
+  // Save actual 24h metrics entered by the creator later
+  const handleSaveMetrics = () => {
     const viewsNum = parseInt(viewsInput, 10) || 0;
     const likesNum = parseInt(likesInput, 10) || 0;
     onMarkPosted(slot.id, { views: viewsNum, likes: likesNum });
-    onClose();
+    setIsRecordingResults(false);
+    setMetricsSavedNotice(true);
+    setTimeout(() => setMetricsSavedNotice(false), 2500);
   };
+
+  const hasMetrics = slot.views > 0 || slot.likes > 0;
 
   return (
     <div className="slot-panel-overlay" onClick={onClose}>
@@ -68,6 +79,11 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
             </div>
             {slot.projectName && (
               <span className="slot-project-pill">{slot.projectName}</span>
+            )}
+            {slot.isPosted && (
+              <span className="slot-live-pill">
+                <Check size={12} strokeWidth={2.8} /> Live
+              </span>
             )}
           </div>
           <button
@@ -109,6 +125,7 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
               className="slot-select"
               value={selectedDay}
               onChange={handleDayChange}
+              disabled={slot.isPosted}
             >
               {WEEK_DAYS.map((d) => (
                 <option key={d.key} value={d.key}>
@@ -127,6 +144,7 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
               className="slot-select"
               value={selectedTime}
               onChange={handleTimeChange}
+              disabled={slot.isPosted}
             >
               {TIME_OPTIONS.map((t) => (
                 <option key={t} value={t}>
@@ -137,36 +155,36 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
           </div>
         </div>
 
-        {/* Recording Results Sub-Panel */}
+        {/* Log 24h Results Sub-Panel (Only when requested to record actual performance) */}
         {isRecordingResults ? (
           <div className="slot-record-results-box">
             <div className="record-results-header">
-              <span className="record-results-title">Record post results</span>
+              <span className="record-results-title">Log 24h performance metrics</span>
               <span className="record-results-sub">
-                Enters live metrics into your Performance analytics
+                Enter your real reach after 24-48 hours to train SnipVoice&apos;s hook insights
               </span>
             </div>
 
             <div className="record-results-grid">
               <div className="record-input-group">
                 <label className="record-input-label" htmlFor="metric-views">
-                  Views
+                  Actual Views (after 24h)
                 </label>
                 <input
                   id="metric-views"
                   type="number"
                   min="0"
-                  step="100"
+                  step="50"
                   className="record-metric-input"
                   value={viewsInput}
                   onChange={(e) => setViewsInput(e.target.value)}
-                  placeholder="e.g. 54200"
+                  placeholder="e.g. 1450"
                 />
               </div>
 
               <div className="record-input-group">
                 <label className="record-input-label" htmlFor="metric-likes">
-                  Likes
+                  Actual Likes
                 </label>
                 <input
                   id="metric-likes"
@@ -176,7 +194,7 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
                   className="record-metric-input"
                   value={likesInput}
                   onChange={(e) => setLikesInput(e.target.value)}
-                  placeholder="e.g. 3800"
+                  placeholder="e.g. 95"
                 />
               </div>
             </div>
@@ -185,9 +203,9 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
               <button
                 type="button"
                 className="btn-save-results"
-                onClick={handleConfirmPosted}
+                onClick={handleSaveMetrics}
               >
-                Confirm & mark posted
+                Save metrics
               </button>
               <button
                 type="button"
@@ -202,17 +220,42 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
           /* Normal Action Buttons */
           <div className="slot-panel-actions">
             {!slot.isPosted ? (
-              <button
-                type="button"
-                className="btn-mark-posted"
-                onClick={() => setIsRecordingResults(true)}
-              >
-                Mark as posted
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="btn-mark-posted"
+                  onClick={handleDirectMarkPosted}
+                  title="Mark this post as published on your social feed"
+                >
+                  <Check size={14} strokeWidth={2.4} />
+                  <span>Mark as published</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-retro-metrics"
+                  onClick={() => setIsRecordingResults(true)}
+                  title="Logging an older post that already has reach data?"
+                >
+                  Log past results
+                </button>
+              </>
             ) : (
-              <div className="slot-already-posted-badge">
-                <Check size={14} strokeWidth={3} />
-                <span>Already posted</span>
+              <div className="slot-posted-group">
+                <div className="slot-already-posted-badge">
+                  <Check size={14} strokeWidth={2.8} />
+                  <span>Published & Live</span>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-update-metrics"
+                  onClick={() => setIsRecordingResults(true)}
+                  title="Enter real views & likes after 24-48 hours"
+                >
+                  <BarChart2 size={13} strokeWidth={2.2} />
+                  <span>{hasMetrics ? `Metrics: ${slot.views} views • ${slot.likes} likes` : 'Log 24h results'}</span>
+                </button>
               </div>
             )}
 
@@ -226,6 +269,13 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
             >
               Remove
             </button>
+          </div>
+        )}
+
+        {metricsSavedNotice && (
+          <div className="slot-metrics-success-pill">
+            <Check size={13} strokeWidth={2.8} />
+            <span>24h metrics logged to Performance analytics!</span>
           </div>
         )}
       </div>

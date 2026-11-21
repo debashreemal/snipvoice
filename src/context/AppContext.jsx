@@ -605,8 +605,8 @@ export function AppProvider({ children }) {
       platformName: s.platformName,
       hookType: postOverrides[s.id]?.hookType || defaultHookTypes[idx % defaultHookTypes.length],
       postTime: s.time,
-      views: postOverrides[s.id]?.views ?? defaultViews[idx % defaultViews.length],
-      likes: postOverrides[s.id]?.likes ?? defaultLikes[idx % defaultLikes.length]
+      views: postOverrides[s.id]?.views !== undefined ? Number(postOverrides[s.id].views) : (Number(s.views) || 0),
+      likes: postOverrides[s.id]?.likes !== undefined ? Number(postOverrides[s.id].likes) : (Number(s.likes) || 0)
     };
   });
 
