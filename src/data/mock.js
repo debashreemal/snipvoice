@@ -353,6 +353,7 @@ export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', proje
         projectName: projectName || 'Project',
         clipId: clip.id,
         hookLine: clip.hookLine,
+        hookType: clip.hookType || clip.hook_type || 'Bold claim',
         clipReason: clip.reason || '',
         platform: platformKey,
         platformName: config.name,

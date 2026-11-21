@@ -48,11 +48,6 @@ export default function App() {
               <Route path="*" element={<Navigate to="/projects" replace />} />
             </Routes>
           </main>
-
-          {/* Right side panel: Global Learned Notes */}
-          <aside className="side-panel">
-            <LearnedPanel />
-          </aside>
         </div>
       </div>
     </AppProvider>

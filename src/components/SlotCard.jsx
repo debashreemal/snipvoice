@@ -1,57 +1,89 @@
 import React from 'react';
-import { Instagram, Linkedin, Twitter, Video, Check } from 'lucide-react';
+import { Instagram, Linkedin, Twitter, Video, Check, Clock } from 'lucide-react';
 
 // Platform icon helper
 function getPlatformIcon(platform) {
   switch (platform) {
     case 'instagram':
-      return <Instagram size={14} strokeWidth={2.2} />;
+      return <Instagram size={13} strokeWidth={2.4} />;
     case 'linkedin':
-      return <Linkedin size={14} strokeWidth={2.2} />;
+      return <Linkedin size={13} strokeWidth={2.4} />;
     case 'x':
-      return <Twitter size={14} strokeWidth={2.2} />;
+      return <Twitter size={13} strokeWidth={2.4} />;
     case 'youtube':
     default:
-      return <Video size={14} strokeWidth={2.2} />;
+      return <Video size={13} strokeWidth={2.4} />;
   }
 }
 
-// SlotCard inside day columns on the calendar with small project tag
+// Rich SlotCard inside day columns on the calendar with all necessary details
 export default function SlotCard({ slot, onSelect }) {
-  const { hookLine, platform, platformName, time, isPosted, projectName } = slot;
+  const {
+    hookLine,
+    hookType,
+    platform,
+    platformName,
+    time,
+    isPosted,
+    projectName,
+    reason,
+    clipReason
+  } = slot;
+
+  const displayHookType = hookType || 'Bold claim';
+  const strategicReason = reason || clipReason || 'Peak audience engagement window';
 
   return (
     <div
       className={`slot-card ${isPosted ? 'is-posted' : ''}`}
       onClick={() => onSelect(slot)}
-      title="Click to view or edit slot"
+      title="Click to view details, reschedule, or mark as posted"
     >
+      {/* Top row: Platform info & Status pill */}
+      <div className="slot-card-header">
+        <div className={`slot-platform-pill platform-${platform}`}>
+          {getPlatformIcon(platform)}
+          <span className="slot-platform-label">{platformName}</span>
+        </div>
+
+        <div className="slot-status-container">
+          {isPosted ? (
+            <span className="slot-status-posted">
+              <Check size={11} strokeWidth={3} />
+              Posted
+            </span>
+          ) : (
+            <span className="slot-status-scheduled">Scheduled</span>
+          )}
+        </div>
+      </div>
+
+      {/* Time & Hook Type Badges */}
+      <div className="slot-meta-row">
+        <div className="slot-time-pill">
+          <Clock size={11} strokeWidth={2.4} />
+          <span>{time}</span>
+        </div>
+        <span className="slot-hook-pill">{displayHookType}</span>
+      </div>
+
+      {/* Main Hook preview */}
+      <div className="slot-hook-text">
+        &ldquo;{hookLine}&rdquo;
+      </div>
+
+      {/* Why this slot rationale callout */}
+      <div className="slot-rationale-box" title={strategicReason}>
+        <span className="slot-rationale-tag">WHY:</span>
+        <span className="slot-rationale-text">{strategicReason}</span>
+      </div>
+
       {/* Project name tag */}
       {projectName && (
-        <span className="slot-project-pill" title={projectName}>
-          {projectName}
-        </span>
-      )}
-
-      {/* Top row: Platform info & Time */}
-      <div className="slot-card-meta">
-        <div className="slot-platform-badge">
-          {getPlatformIcon(platform)}
-          <span className="slot-platform-name">{platformName}</span>
-        </div>
-        <span className="slot-time-text">{time}</span>
-      </div>
-
-      {/* Hook line clamped to 2 lines */}
-      <div className="slot-hook-text">
-        {hookLine}
-      </div>
-
-      {/* Posted badge when slot has been marked as posted */}
-      {isPosted && (
-        <div className="slot-posted-tag">
-          <Check size={12} strokeWidth={3} />
-          <span>Posted</span>
+        <div className="slot-footer-row">
+          <span className="slot-project-pill" title={projectName}>
+            {projectName}
+          </span>
         </div>
       )}
     </div>

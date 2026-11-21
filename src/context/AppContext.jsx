@@ -494,27 +494,40 @@ export function AppProvider({ children }) {
   // Auto-plan week slots (supports immediate mode for Send to Calendar)
   const autoPlanWeek = (projectId, immediate = false) => {
     const targetProject = projectId ? getProject(projectId) : projects[0];
-    const approvedClips = targetProject?.clips?.filter((c) => c.status === 'approved') || [];
-    if (approvedClips.length === 0) return [];
+    let approvedClips = targetProject?.clips?.filter((c) => c.status === 'approved') || [];
+
+    // Fallback: If no clips explicitly marked approved yet, use top clips from project or mock clips
+    if (approvedClips.length === 0) {
+      if (targetProject?.clips && targetProject.clips.length > 0) {
+        approvedClips = targetProject.clips.slice(0, 5);
+      } else {
+        approvedClips = MOCK_CLIPS_D2C;
+      }
+    }
 
     const slots = generateAutoPlanSlots(
       approvedClips,
-      targetProject.id,
-      targetProject.title,
+      targetProject?.id || 'proj-1',
+      targetProject?.title || 'D2C Brand Secrets',
       hasAppliedInsights
     );
 
     if (immediate) {
-      setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== targetProject.id)]);
+      setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== (targetProject?.id || 'proj-1'))]);
       return slots;
     }
 
     setIsAutoPlanning(true);
     setTimeout(() => {
-      setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== targetProject.id)]);
+      setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== (targetProject?.id || 'proj-1'))]);
       setIsAutoPlanning(false);
-    }, 1000);
+    }, 600);
     return slots;
+  };
+
+  // Add a single slot manually or from clip selector
+  const addSlot = (newSlot) => {
+    setScheduledSlots((prev) => [newSlot, ...prev]);
   };
 
   // Update a single slot
@@ -650,6 +663,7 @@ export function AppProvider({ children }) {
         isAutoPlanning,
         hasAppliedInsights,
         autoPlanWeek,
+        addSlot,
         updateSlot,
         removeSlot,
         markSlotPosted,
