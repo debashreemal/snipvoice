@@ -16,6 +16,7 @@ import WeekGrid from '../components/WeekGrid';
 import AgendaView from '../components/AgendaView';
 import SlotPanel from '../components/SlotPanel';
 import AddSlotModal from '../components/AddSlotModal';
+import ProjectSearchSelector from '../components/ProjectSearchSelector';
 
 const PLATFORM_FILTERS = [
   { key: 'all', label: 'All platforms' },
@@ -139,24 +140,14 @@ export default function CalendarPage() {
 
       {/* Primary Toolbar: Project selector, View switch, Week navigation, Auto-plan */}
       <div className="calendar-toolbar-row">
-        {/* Left: Project filter & Platform Filter */}
+        {/* Left: Project filter & View Switcher */}
         <div className="calendar-toolbar-left">
-          <div className="project-filter-group">
-            <Filter size={14} strokeWidth={2.4} className="filter-icon" />
-            <span className="filter-label">Project:</span>
-            <select
-              className="project-filter-select"
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-            >
-              <option value="all">All projects ({projects.length})</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          <ProjectSearchSelector
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            onSelectProject={(id) => setSelectedProjectId(id)}
+            placeholder="Search projects in calendar..."
+          />
 
           {/* View Switcher: Grid vs Agenda */}
           <div className="calendar-view-toggle">

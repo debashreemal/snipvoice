@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Filter } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import StatCard from '../components/StatCard';
 import PostsTable from '../components/PostsTable';
 import HookBarChart from '../components/HookBarChart';
 import SuggestionsCard from '../components/SuggestionsCard';
+import ProjectSearchSelector from '../components/ProjectSearchSelector';
 import { HOOK_TYPES } from '../data/mock';
 
 // Format numbers (e.g. 50600 -> "50.6k", 3625 -> "3.6k")
@@ -155,22 +155,12 @@ export default function PerformancePage() {
 
       {/* Top Filter Bar */}
       <div className="performance-filter-bar">
-        <div className="project-filter-group">
-          <Filter size={15} strokeWidth={2.4} className="filter-icon" />
-          <span className="filter-label">Project:</span>
-          <select
-            className="project-filter-select"
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-          >
-            <option value="all">All projects ({projects.length})</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </div>
+        <ProjectSearchSelector
+          projects={projects}
+          selectedProjectId={selectedProjectId}
+          onSelectProject={(id) => setSelectedProjectId(id)}
+          placeholder="Search projects to view performance..."
+        />
       </div>
 
       {/* Top Row: 3 Stat Cards */}

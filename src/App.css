@@ -2223,6 +2223,226 @@
 
 .performance-filter-bar {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Searchable Project Selector Component */
+.project-search-selector-container {
+  position: relative;
+  display: inline-block;
+}
+
+.project-selector-trigger {
+  height: 38px;
+  padding: 0 14px;
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+.project-selector-trigger:hover,
+.project-selector-trigger.is-open {
+  background-color: var(--sky-soft);
+  color: var(--sky-navy);
+}
+
+.project-selector-trigger.has-selection {
+  background-color: var(--sky-card);
+  color: var(--sky-navy);
+}
+
+.selector-icon {
+  color: var(--sky-deep);
+  flex-shrink: 0;
+}
+
+.selector-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.selector-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sky-navy);
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selector-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--white);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.selector-clear-btn:hover {
+  background-color: var(--reject);
+  color: var(--text);
+}
+
+.selector-chevron {
+  color: var(--text-soft);
+  transition: transform 0.2s ease;
+}
+
+.selector-chevron.is-flipped {
+  transform: rotate(180deg);
+}
+
+/* Searchable Dropdown Menu */
+.project-selector-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  width: 320px;
+  max-width: 90vw;
+  background-color: var(--white);
+  border-radius: 16px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.15);
+}
+
+.selector-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--bg-subtle);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+}
+
+.selector-search-icon {
+  color: var(--text-soft);
+  flex-shrink: 0;
+}
+
+.selector-search-input {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+}
+
+.selector-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.selector-search-clear {
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.selector-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.selector-option-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+  user-select: none;
+}
+
+.selector-option-item:hover {
+  background-color: var(--sky-soft);
+}
+
+.selector-option-item.is-selected {
+  background-color: var(--sky-card);
+}
+
+.option-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.option-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.option-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.option-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option-check-icon {
+  color: var(--sky-deep);
+  flex-shrink: 0;
+}
+
+.selector-no-results {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-soft);
 }
 
 .performance-stats-row {
