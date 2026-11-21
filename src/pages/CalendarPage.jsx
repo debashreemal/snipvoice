@@ -139,8 +139,8 @@ export default function CalendarPage() {
         )}
       </div>
 
-      {/* Empty State when no clips approved */}
-      {approvedClips.length === 0 ? (
+      {/* Empty State when no clips approved and no slots scheduled */}
+      {approvedClips.length === 0 && visibleSlots.length === 0 ? (
         <div className="captions-empty-state">
           <p className="captions-empty-text">
             No approved clips yet. Approve some clips first in your projects.
