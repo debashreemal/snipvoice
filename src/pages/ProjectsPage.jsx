@@ -152,26 +152,19 @@ export default function ProjectsPage() {
 
       {/* Grid of Projects */}
       <div className="projects-grid">
-        {/* Card 1: New Project Card */}
-        <div
-          className="project-card-new"
-          onClick={() => navigate('/projects/new')}
-          role="button"
-          tabIndex={0}
-        >
-          <div className="new-card-icon-circle">
-            <Plus size={28} strokeWidth={2.5} />
+        {filteredProjects.length === 0 ? (
+          <div className="projects-empty-card" style={{ gridColumn: '1 / -1', padding: '64px 24px', textAlign: 'center', backgroundColor: 'var(--card-dark)', borderRadius: 'var(--radius)', color: 'var(--text-on-dark)' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: 'var(--sky-bright)' }}>No projects yet</h3>
+            <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)' }}>
+              Click &quot;New project&quot; at the top to start repurposing your first podcast or video.
+            </p>
           </div>
-          <span className="new-card-title">New project</span>
-          <span className="new-card-subtext">Drop a video transcript to extract clips</span>
-        </div>
+        ) : (
+          filteredProjects.map((project) => {
+            const progress = computeProjectProgress(project, scheduledSlots);
 
-        {/* Existing Projects Cards */}
-        {filteredProjects.map((project) => {
-          const progress = computeProjectProgress(project, scheduledSlots);
-
-          return (
-            <div key={project.id} className="project-card">
+            return (
+              <div key={project.id} className="project-card">
               <div className="project-card-top">
                 <span className="project-card-date">{project.createdAt}</span>
               </div>
@@ -227,7 +220,7 @@ export default function ProjectsPage() {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );
