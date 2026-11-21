@@ -1,3 +1,4 @@
+
 // Mock data for SnipVoice - Content repurposing studio for Indian creators
 
 export const SAMPLE_TRANSCRIPT = `[00:00:15] Shuruat me jab maine YouTube start kiya tha, sab bolte the ki English me content banao.

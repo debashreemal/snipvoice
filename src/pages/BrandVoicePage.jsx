@@ -8,7 +8,6 @@ import {
   Video,
   Wand2,
   Plus,
-  TrendingUp,
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { apiFetch } from '../lib/api';
@@ -49,27 +48,6 @@ export default function BrandVoicePage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractNotice, setExtractNotice] = useState(null);
-
-  // Real voice match trend history loaded from /api/voice-history
-  const [voiceHistory, setVoiceHistory] = useState([]);
-
-  // Load actual voice history data on mount
-  useEffect(() => {
-    let isMounted = true;
-    apiFetch('/api/voice-history')
-      .then((data) => {
-        if (!isMounted || !data) return;
-        if (Array.isArray(data.history)) {
-          setVoiceHistory(data.history);
-        }
-      })
-      .catch((err) => {
-        console.warn('Could not load voice history:', err?.message);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Sync state whenever brandVoice updates in context / database
   useEffect(() => {
@@ -155,55 +133,6 @@ export default function BrandVoicePage() {
 
   // Last 5 edits
   const recentEdits = edits.slice(0, 5);
-
-  // Feature 1: Computed trend summary line from real data
-  const computedTrendSummary = useMemo(() => {
-    if (!voiceHistory || voiceHistory.length < 2) {
-      return 'Write captions and save a few edits to see your trend.';
-    }
-    const first = voiceHistory[0];
-    const last = voiceHistory[voiceHistory.length - 1];
-    return `Your captions went from ${first.avg_match}% to ${last.avg_match}% match after ${last.edits_count} edits.`;
-  }, [voiceHistory]);
-
-  // Feature 1: Plain SVG line chart calculations (real data only, no fake points)
-  const chartLayout = useMemo(() => {
-    if (!voiceHistory || voiceHistory.length === 0) return { points: [], pathD: '' };
-
-    const left = 55;
-    const right = 560;
-    const top = 25;
-    const plotWidth = right - left;
-    const plotHeight = 135;
-
-    if (voiceHistory.length === 1) {
-      const pt = voiceHistory[0];
-      const y = top + (1 - Math.min(100, Math.max(0, pt.avg_match)) / 100) * plotHeight;
-      return {
-        points: [{ x: left + plotWidth / 2, y, avgMatch: pt.avg_match, editsCount: pt.edits_count }],
-        pathD: '',
-      };
-    }
-
-    const minEdits = voiceHistory[0].edits_count;
-    const maxEdits = voiceHistory[voiceHistory.length - 1].edits_count;
-    const editRange = maxEdits - minEdits || 1;
-
-    const points = voiceHistory.map((pt, i) => {
-      const x = editRange > 0
-        ? left + ((pt.edits_count - minEdits) / editRange) * plotWidth
-        : left + (i / (voiceHistory.length - 1)) * plotWidth;
-      const y = top + (1 - Math.min(100, Math.max(0, pt.avg_match)) / 100) * plotHeight;
-      return { x, y, avgMatch: pt.avg_match, editsCount: pt.edits_count };
-    });
-
-    const pathD = points.reduce(
-      (acc, pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`),
-      ''
-    );
-
-    return { points, pathD };
-  }, [voiceHistory]);
 
   return (
     <div className="brand-voice-page">
@@ -381,84 +310,6 @@ export default function BrandVoicePage() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Feature 1: Voice Match Trend Card (Plain SVG line chart) */}
-      <div className="voice-trend-card">
-        <div className="card-section-header">
-          <div className="title-with-icon">
-            <TrendingUp size={18} strokeWidth={2.4} />
-            <h2 className="card-heading">Voice match over time</h2>
-          </div>
-          <p className="card-subheading">
-            How your caption voice match improves as you edit and refine your style.
-          </p>
-        </div>
-
-        <div className="voice-trend-chart-box">
-          <svg viewBox="0 0 600 200" className="voice-trend-svg" preserveAspectRatio="none">
-            {/* Gridlines in light --day-column */}
-            <line x1="55" y1="25" x2="560" y2="25" stroke="var(--day-column)" strokeWidth="1" />
-            <line x1="55" y1="92" x2="560" y2="92" stroke="var(--day-column)" strokeWidth="1" strokeDasharray="3 3" />
-            <line x1="55" y1="160" x2="560" y2="160" stroke="var(--day-column)" strokeWidth="1" />
-
-            {/* Labelled Y-Axes */}
-            <text x="44" y="29" textAnchor="end" fill="var(--text-soft)" fontSize="11" fontWeight="700">100%</text>
-            <text x="44" y="96" textAnchor="end" fill="var(--text-soft)" fontSize="11" fontWeight="700">50%</text>
-            <text x="44" y="164" textAnchor="end" fill="var(--text-soft)" fontSize="11" fontWeight="700">0%</text>
-
-            {/* Line in --sky-bright (only if >= 2 points) */}
-            {chartLayout.pathD && (
-              <path
-                d={chartLayout.pathD}
-                fill="none"
-                stroke="var(--sky-bright)"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            )}
-
-            {/* Real Data Points (Dots in --sky-bright, labelled axes) */}
-            {chartLayout.points.map((pt, idx) => (
-              <g key={idx}>
-                <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="5"
-                  fill="var(--sky-bright)"
-                  stroke="var(--white)"
-                  strokeWidth="2"
-                />
-                <text
-                  x={pt.x}
-                  y={pt.y - 8}
-                  textAnchor="middle"
-                  fill="var(--text)"
-                  fontSize="11"
-                  fontWeight="800"
-                >
-                  {pt.avgMatch}%
-                </text>
-                <text
-                  x={pt.x}
-                  y="182"
-                  textAnchor="middle"
-                  fill="var(--text-soft)"
-                  fontSize="10"
-                  fontWeight="700"
-                >
-                  {pt.editsCount} {pt.editsCount === 1 ? 'edit' : 'edits'}
-                </text>
-              </g>
-            ))}
-          </svg>
-        </div>
-
-        {/* Dynamic Computed Summary Line */}
-        <p className="voice-trend-summary-text">
-          {computedTrendSummary}
-        </p>
       </div>
 
       {/* Bottom Section: Recent Edits (Last 5 with before & after) */}
