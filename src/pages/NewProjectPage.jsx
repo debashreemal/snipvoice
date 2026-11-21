@@ -43,6 +43,8 @@ export default function NewProjectPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [language, setLanguage] = useState('English (India)');
   const [uploadNotice, setUploadNotice] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStepText, setUploadStepText] = useState('Transcribing with Gnani AI...');
 
   // Load sample transcript into form fields
   const handleLoadSample = () => {
@@ -100,11 +102,45 @@ export default function NewProjectPage() {
     }
   };
 
-  // Transcribe button action for Upload file tab (stubbed for next step)
-  const handleTranscribeClick = (e) => {
+  // Transcribe button action for Upload file tab (calls Gnani.ai STT)
+  const handleTranscribeClick = async (e) => {
     e.preventDefault();
-    if (!selectedFile) return;
-    setUploadNotice('Upload is coming in the next step');
+    if (!selectedFile || isUploading || isLoading) return;
+
+    let titleToUse = (projectTitle || '').trim();
+    if (!titleToUse) {
+      const cleanFileName = selectedFile.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      titleToUse = cleanFileName.charAt(0).toUpperCase() + cleanFileName.slice(1);
+      setProjectTitle(titleToUse);
+    }
+
+    setIsUploading(true);
+    setUploadStepText('Transcribing with Gnani AI...');
+    setFileError(null);
+    setUploadNotice(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('language', language);
+
+      const transData = await apiFetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!transData || !transData.transcript) {
+        throw new Error('No transcript received from Gnani AI. Please try again.');
+      }
+
+      setUploadStepText('Transcribed! Finding best moments with AI...');
+      await executePickClips(titleToUse, transData.transcript);
+    } catch (err) {
+      console.error('Gnani transcription error:', err);
+      setFileError(err.message || 'Could not transcribe file with Gnani AI. Check your file and try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Execute pick-clips API call for transcript tab
@@ -548,20 +584,21 @@ export default function NewProjectPage() {
               <button
                 type="submit"
                 className="btn-primary"
-                disabled={!selectedFile || Boolean(fileError)}
+                disabled={!selectedFile || Boolean(fileError) || isUploading || isLoading}
               >
-                <span>Transcribe and find clips</span>
-                <ArrowRight size={16} strokeWidth={2.4} />
+                {isUploading || isLoading ? (
+                  <>
+                    <Loader2 size={16} strokeWidth={2.4} className="spin-icon" />
+                    <span>{uploadStepText}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Transcribe with Gnani & find clips</span>
+                    <ArrowRight size={16} strokeWidth={2.4} />
+                  </>
+                )}
               </button>
             </div>
-
-            {/* Notice when clicked */}
-            {uploadNotice && (
-              <div className="upload-coming-note">
-                <Info size={16} strokeWidth={2.4} />
-                <span>{uploadNotice}</span>
-              </div>
-            )}
           </>
         )}
       </form>

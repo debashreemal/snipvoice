@@ -21,9 +21,8 @@ export class ApiError extends Error {
 export async function apiFetch(endpoint, options = {}) {
   const url = endpoint.startsWith('/') ? endpoint : `/api/${endpoint}`;
 
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
+  const isFormData = options.body instanceof FormData;
+  const defaultHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
 
   const config = {
     ...options,

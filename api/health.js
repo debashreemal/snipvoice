@@ -14,10 +14,15 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_ROLE_KEY.trim().length > 0
   );
 
+  const hasGnani = Boolean(
+    process.env.GNANI_API_KEY && process.env.GNANI_API_KEY.trim().length > 0
+  );
+
   const payload = {
     ok: true,
     groq: hasGroq,
     supabase: hasSupabase,
+    gnani: hasGnani,
   };
 
   // Support standard Vercel Node handler (res.status().json())

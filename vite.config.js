@@ -31,9 +31,10 @@ function vercelApiDevPlugin() {
           return;
         }
 
-        // Buffer and parse JSON body for POST/PUT requests
+        // Parse JSON body for application/json POST/PUT requests (leave multipart streams untouched)
+        const contentType = req.headers['content-type'] || '';
         let body = {};
-        if (req.method !== 'GET' && req.method !== 'HEAD') {
+        if (req.method !== 'GET' && req.method !== 'HEAD' && contentType.includes('application/json')) {
           try {
             const chunks = [];
             for await (const chunk of req) {
