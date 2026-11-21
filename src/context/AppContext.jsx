@@ -33,6 +33,7 @@ export function AppProvider({ children }) {
   const [scheduledSlots, setScheduledSlots] = useState(INITIAL_SCHEDULED_SLOTS);
   const [isAutoPlanning, setIsAutoPlanning] = useState(false);
   const [hasAppliedInsights, setHasAppliedInsights] = useState(false);
+  const [insightStats, setInsightStats] = useState(null);
 
   // Overrides for performance metrics (views, likes, hookType)
   const [postOverrides, setPostOverrides] = useState({});
@@ -515,8 +516,8 @@ export function AppProvider({ children }) {
     }).catch((err) => console.warn('Could not update brand voice in Supabase:', err));
   };
 
-  // Auto-plan week slots (supports immediate mode for Send to Calendar)
-  const autoPlanWeek = (projectId, immediate = false) => {
+  // Generate draft plan (Returns draft plan without saving directly)
+  const generateDraftPlan = async (projectId) => {
     const targetProject = projectId ? getProject(projectId) : projects[0];
     let approvedClips = targetProject?.clips?.filter((c) => c.status === 'approved') || [];
 
@@ -529,11 +530,88 @@ export function AppProvider({ children }) {
       }
     }
 
+    const rawSlots = generateAutoPlanSlots(
+      approvedClips,
+      targetProject?.id || 'proj-1',
+      targetProject?.title || 'D2C Brand Secrets',
+      hasAppliedInsights,
+      insightStats
+    );
+
+    try {
+      const planRes = await apiFetch('/api/plan', {
+        method: 'POST',
+        body: {
+          save: false,
+          slots: rawSlots,
+          projectId: targetProject?.id || 'proj-1',
+          stats: insightStats,
+        },
+      });
+
+      if (planRes && Array.isArray(planRes.draftPlan)) {
+        return {
+          draftPlan: planRes.draftPlan,
+          changedCount: planRes.changedCount ?? rawSlots.filter((s) => Boolean(s.changed_because)).length,
+          summary: planRes.summary ?? (hasAppliedInsights ? `${planRes.changedCount || 3} slots changed using your last results.` : null),
+          projectId: targetProject?.id || 'proj-1',
+        };
+      }
+    } catch (err) {
+      console.warn('API draft plan fallback:', err?.message);
+    }
+
+    const changedCount = rawSlots.filter((s) => Boolean(s.changed_because)).length;
+    return {
+      draftPlan: rawSlots,
+      changedCount,
+      summary: hasAppliedInsights && changedCount > 0 ? `${changedCount} slots changed using your last results.` : null,
+      projectId: targetProject?.id || 'proj-1',
+    };
+  };
+
+  // Approve and save draft plan to database and store
+  const approvePlan = async (draftSlots, projectId) => {
+    try {
+      await apiFetch('/api/plan', {
+        method: 'POST',
+        body: {
+          save: true,
+          slots: draftSlots,
+          projectId,
+        },
+      });
+    } catch (err) {
+      console.warn('Error saving approved plan to database:', err?.message);
+    }
+
+    setScheduledSlots((prev) => [
+      ...draftSlots,
+      ...prev.filter((s) => s.projectId !== projectId),
+    ]);
+
+    return draftSlots.length;
+  };
+
+  // Auto-plan week slots (convenience method)
+  const autoPlanWeek = (projectId, immediate = false) => {
+    const targetProject = projectId ? getProject(projectId) : projects[0];
+    let approvedClips = targetProject?.clips?.filter((c) => c.status === 'approved') || [];
+
+    if (approvedClips.length === 0) {
+      if (targetProject?.clips && targetProject.clips.length > 0) {
+        approvedClips = targetProject.clips.slice(0, 5);
+      } else {
+        approvedClips = MOCK_CLIPS_D2C;
+      }
+    }
+
     const slots = generateAutoPlanSlots(
       approvedClips,
       targetProject?.id || 'proj-1',
       targetProject?.title || 'D2C Brand Secrets',
-      hasAppliedInsights
+      hasAppliedInsights,
+      insightStats
     );
 
     if (immediate) {
@@ -636,8 +714,15 @@ export function AppProvider({ children }) {
   };
 
   // Apply performance insights to global Learned panel and mark hasAppliedInsights
-  const applyPerformanceInsights = (notesToAdd) => {
+  const applyPerformanceInsights = (notesToAdd, stats = null) => {
     setHasAppliedInsights(true);
+    if (stats) setInsightStats(stats);
+
+    apiFetch('/api/insights', {
+      method: 'POST',
+      body: { insights: notesToAdd, stats }
+    }).catch((err) => console.warn('Could not persist insights:', err));
+
     setLearnedNotes((prev) => {
       const brandNew = notesToAdd.filter((n) => !prev.includes(n));
       if (brandNew.length > 0) {
@@ -686,6 +771,9 @@ export function AppProvider({ children }) {
         scheduledSlots: populatedScheduledSlots,
         isAutoPlanning,
         hasAppliedInsights,
+        insightStats,
+        generateDraftPlan,
+        approvePlan,
         autoPlanWeek,
         addSlot,
         updateSlot,

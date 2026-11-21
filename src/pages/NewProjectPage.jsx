@@ -126,7 +126,7 @@ export default function NewProjectPage() {
     }
 
     setIsUploading(true);
-    setUploadStepText('Transcribing with Gnani AI...');
+    setUploadStepText('Transcribing audio with Gnani AI & Groq Whisper...');
     setFileError(null);
     setUploadNotice(null);
 
@@ -144,7 +144,7 @@ export default function NewProjectPage() {
         throw new Error('No transcript received from speech engine. Please try again.');
       }
 
-      setUploadStepText('Transcribed! Finding best moments with AI...');
+      setUploadStepText(`Transcribed via ${transData.provider || 'AI'}! Finding best moments...`);
       await executePickClips(titleToUse, transData.transcript);
     } catch (err) {
       console.error('Transcription error:', err);
@@ -604,7 +604,7 @@ export default function NewProjectPage() {
                   </>
                 ) : (
                   <>
-                    <span>Transcribe with Gnani & find clips</span>
+                    <span>Transcribe audio & find clips</span>
                     <ArrowRight size={16} strokeWidth={2.4} />
                   </>
                 )}

@@ -75,7 +75,7 @@ export default function AgendaView({ slots, onSelectSlot, onAddSlotToDay }) {
                 </div>
               ) : (
                 daySlots.map((slot) => {
-                  const strategicReason = slot.reason || slot.clipReason || 'Optimal publishing window';
+                  const strategicReason = slot.changed_because || slot.reason || slot.clipReason || 'Optimal publishing window';
 
                   return (
                     <div
@@ -106,8 +106,13 @@ export default function AgendaView({ slots, onSelectSlot, onAddSlotToDay }) {
                         <span className="agenda-slot-reason">{strategicReason}</span>
                       </div>
 
-                      {/* Status */}
+                      {/* Status & Changed Tag */}
                       <div className="agenda-slot-status">
+                        {slot.changed_because && (
+                          <span className="slot-changed-tag" title={slot.changed_because}>
+                            Changed
+                          </span>
+                        )}
                         {slot.isPosted ? (
                           <span className="status-posted-pill">
                             <Check size={12} strokeWidth={3} />

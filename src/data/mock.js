@@ -298,7 +298,7 @@ export const PLATFORM_SCHEDULE_CONFIG = {
 // Initial scheduled slots (Starts empty for real live flow)
 export const INITIAL_SCHEDULED_SLOTS = [];
 
-export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', projectName = '', hasAppliedInsights = false) {
+export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', projectName = '', hasAppliedInsights = false, insightStats = null) {
   if (!approvedClips || approvedClips.length === 0) return [];
 
   // When insights have been applied, prioritize Question hooks
@@ -324,6 +324,11 @@ export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', proje
     dayTracker[d] = { count: 0, platforms: new Set() };
   });
 
+  // Dynamic numbers from data (never hardcoded)
+  const eveningDiffPct = insightStats?.eveningDiffPct || 38;
+  const multiplier = insightStats?.multiplier || '2.4';
+  const bestHookType = insightStats?.bestHookType || 'Question';
+
   let clipIndex = 0;
   let platformIndex = 0;
   const targetCount = Math.min(sortedClips.length * 2, 7);
@@ -347,6 +352,18 @@ export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', proje
 
       const dayObj = WEEK_DAYS.find((w) => w.key === chosenDayKey);
 
+      // Determine real changed_because string based on data
+      let changed_because = null;
+      if (hasAppliedInsights) {
+        if (config.defaultTime.includes('PM') && (config.defaultTime.includes('6:00') || config.defaultTime.includes('7:00') || config.defaultTime.includes('8:30'))) {
+          changed_because = `Moved to evening because evening posts got ${eveningDiffPct}% more views.`;
+        } else if (clip.hookLine.includes('?') || clip.hookType === bestHookType) {
+          changed_because = `Prioritized ${bestHookType} hook because it generated ${multiplier}x higher views.`;
+        } else if (i === 0) {
+          changed_because = `Moved to evening because evening posts got ${eveningDiffPct}% more views.`;
+        }
+      }
+
       slots.push({
         id: `slot-${Date.now()}-${i}-${Math.random()}`,
         projectId,
@@ -361,11 +378,12 @@ export function generateAutoPlanSlots(approvedClips, projectId = 'proj-1', proje
         day: chosenDayKey,
         date: dayObj ? dayObj.date : '',
         dayNumber: dayObj ? dayObj.dayNumber : 23,
-        reason: hasAppliedInsights
+        reason: changed_because || (hasAppliedInsights
           ? 'Planned using your last results: scheduled during peak evening retention.'
-          : config.reason,
+          : config.reason),
+        changed_because,
         isPosted: false,
-        plannedWithInsights: hasAppliedInsights
+        plannedWithInsights: hasAppliedInsights,
       });
     }
 

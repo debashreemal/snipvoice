@@ -17,6 +17,7 @@ import WeekGrid from '../components/WeekGrid';
 import AgendaView from '../components/AgendaView';
 import SlotPanel from '../components/SlotPanel';
 import AddSlotModal from '../components/AddSlotModal';
+import PlanConfirmModal from '../components/PlanConfirmModal';
 import ProjectSearchSelector from '../components/ProjectSearchSelector';
 
 const PLATFORM_FILTERS = [
@@ -37,6 +38,8 @@ export default function CalendarPage() {
     isAutoPlanning,
     hasAppliedInsights,
     autoPlanWeek,
+    generateDraftPlan,
+    approvePlan,
     addSlot,
     updateSlot,
     removeSlot,
@@ -52,6 +55,12 @@ export default function CalendarPage() {
   // Schedule modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addModalDay, setAddModalDay] = useState('mon');
+
+  // Draft plan confirmation modal state
+  const [draftPlanData, setDraftPlanData] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [planSavedNotice, setPlanSavedNotice] = useState(null);
 
   // Sync if URL search param changes
   useEffect(() => {
@@ -103,12 +112,38 @@ export default function CalendarPage() {
     ? scheduledSlots.find((s) => s.id === selectedSlot.id) || null
     : null;
 
-  const handleAutoPlanClick = () => {
-    if (selectedProjectId !== 'all') {
-      autoPlanWeek(selectedProjectId);
-    } else {
-      autoPlanWeek(projects[0]?.id);
+  const handleAutoPlanClick = async () => {
+    const targetProjId = selectedProjectId !== 'all' ? selectedProjectId : projects[0]?.id;
+    try {
+      const draftResult = await generateDraftPlan(targetProjId);
+      if (draftResult && draftResult.draftPlan && draftResult.draftPlan.length > 0) {
+        setDraftPlanData(draftResult);
+        setIsConfirmModalOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to generate draft plan:', err);
     }
+  };
+
+  const handleApprovePlan = async () => {
+    if (!draftPlanData || !draftPlanData.draftPlan) return;
+    setIsApproving(true);
+    try {
+      const count = await approvePlan(draftPlanData.draftPlan, draftPlanData.projectId);
+      setIsConfirmModalOpen(false);
+      setDraftPlanData(null);
+      setPlanSavedNotice(`Plan saved. ${count} posts scheduled.`);
+      setTimeout(() => setPlanSavedNotice(null), 4000);
+    } catch (err) {
+      console.error('Failed to approve plan:', err);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleDiscardPlan = () => {
+    setIsConfirmModalOpen(false);
+    setDraftPlanData(null);
   };
 
   const handleOpenAddForDay = (dayKey) => {
@@ -284,6 +319,14 @@ export default function CalendarPage() {
         ))}
       </div>
 
+      {/* Plan Saved Banner Notice */}
+      {planSavedNotice && (
+        <div className="calendar-plan-saved-banner">
+          <Check size={16} strokeWidth={2.8} />
+          <span>{planSavedNotice}</span>
+        </div>
+      )}
+
       {/* Summary Info & Helper Callout */}
       <div className="calendar-info-row">
         {totalPosts > 0 ? (
@@ -348,6 +391,18 @@ export default function CalendarPage() {
           projects={projects}
           onClose={() => setIsAddModalOpen(false)}
           onAddSlot={addSlot}
+        />
+      )}
+
+      {/* Confirmation Before Scheduling Modal */}
+      {isConfirmModalOpen && draftPlanData && (
+        <PlanConfirmModal
+          draftPlan={draftPlanData.draftPlan}
+          summary={draftPlanData.summary}
+          changedCount={draftPlanData.changedCount}
+          onApprove={handleApprovePlan}
+          onDiscard={handleDiscardPlan}
+          isApproving={isApproving}
         />
       )}
 

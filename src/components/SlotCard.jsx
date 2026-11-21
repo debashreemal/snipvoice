@@ -27,11 +27,12 @@ export default function SlotCard({ slot, onSelect }) {
     isPosted,
     projectName,
     reason,
-    clipReason
+    clipReason,
+    changed_because,
   } = slot;
 
   const displayHookType = hookType || 'Bold claim';
-  const strategicReason = reason || clipReason || 'Peak audience engagement window';
+  const strategicReason = changed_because || reason || clipReason || 'Peak audience engagement window';
 
   return (
     <div
@@ -39,7 +40,7 @@ export default function SlotCard({ slot, onSelect }) {
       onClick={() => onSelect(slot)}
       title="Click to view details, reschedule, or mark as posted"
     >
-      {/* Top row: Platform info & Status pill */}
+      {/* Top row: Platform info & Status pill & Changed tag */}
       <div className="slot-card-header">
         <div className={`slot-platform-pill platform-${platform}`}>
           {getPlatformIcon(platform)}
@@ -47,6 +48,11 @@ export default function SlotCard({ slot, onSelect }) {
         </div>
 
         <div className="slot-status-container">
+          {changed_because && (
+            <span className="slot-changed-tag" title={changed_because}>
+              Changed
+            </span>
+          )}
           {isPosted ? (
             <span className="slot-status-posted">
               <Check size={11} strokeWidth={3} />

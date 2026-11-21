@@ -123,12 +123,18 @@ export default function PerformancePage() {
     });
 
     let weakestPlatform = 'LinkedIn';
+    let strongestPlatform = 'Instagram';
     let lowestAvg = Infinity;
+    let highestAvg = 0;
     Object.entries(platformMap).forEach(([plat, data]) => {
-      const pAvg = data.count > 0 ? data.total / data.count : 0;
+      const pAvg = data.count > 0 ? Math.round(data.total / data.count) : 0;
       if (pAvg < lowestAvg) {
         lowestAvg = pAvg;
         weakestPlatform = plat;
+      }
+      if (pAvg > highestAvg) {
+        highestAvg = pAvg;
+        strongestPlatform = plat;
       }
     });
 
@@ -137,9 +143,16 @@ export default function PerformancePage() {
       avgLikes,
       hookStats,
       bestHookType: bestHook.type,
+      bestHookAvg: bestHook.avgViews,
+      otherAvg: Math.round(otherAvg),
       multiplier,
       eveningDiffPct,
-      weakestPlatform
+      avgEvening: Math.round(avgEvening),
+      avgMorning: Math.round(avgMorning),
+      weakestPlatform,
+      strongestPlatform,
+      lowestAvg: lowestAvg === Infinity ? 0 : lowestAvg,
+      highestAvg
     };
   }, [filteredPosts]);
 
@@ -198,9 +211,16 @@ export default function PerformancePage() {
         <div className="performance-right-column">
           <SuggestionsCard
             bestHookType={analysis.bestHookType}
+            bestHookAvg={analysis.bestHookAvg}
+            otherAvg={analysis.otherAvg}
             multiplier={analysis.multiplier}
             eveningDiffPct={analysis.eveningDiffPct}
+            avgEvening={analysis.avgEvening}
+            avgMorning={analysis.avgMorning}
             weakestPlatform={analysis.weakestPlatform}
+            strongestPlatform={analysis.strongestPlatform}
+            lowestAvg={analysis.lowestAvg}
+            highestAvg={analysis.highestAvg}
             onApply={applyPerformanceInsights}
           />
         </div>

@@ -2,24 +2,49 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, ArrowRight } from 'lucide-react';
 
-// NextSuggestionsCard: 3 dynamic pattern lines, Apply button, and before/after comparison
+function formatMetric(num) {
+  if (!num && num !== 0) return '0';
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+  return num.toString();
+}
+
+// NextSuggestionsCard: 3 dynamic pattern lines displaying exact real numbers from data
 export default function SuggestionsCard({
   bestHookType,
+  bestHookAvg,
+  otherAvg,
   multiplier,
   eveningDiffPct,
+  avgEvening,
+  avgMorning,
   weakestPlatform,
+  strongestPlatform,
+  lowestAvg,
+  highestAvg,
   onApply
 }) {
   const [savedConfirmation, setSavedConfirmation] = useState(false);
 
   const handleApplyClick = () => {
-    // Generate actionable insights for the Learned panel
+    // Generate actionable insights for the Learned panel with real calculated numbers
     const newNotes = [
-      `Prioritizes ${bestHookType} hooks (~${multiplier}x views)`,
-      `Schedules high-impact clips for evening (after 5 PM)`,
-      `Uses punchier, shorter hooks on ${weakestPlatform}`
+      `Prioritizes ${bestHookType} hooks (~${multiplier}x views: ${formatMetric(bestHookAvg)} vs ${formatMetric(otherAvg)})`,
+      `Schedules high-impact clips for evening (+${eveningDiffPct}% views: ${formatMetric(avgEvening)} vs ${formatMetric(avgMorning)})`,
+      `Uses punchier, shorter hooks on ${weakestPlatform} (${formatMetric(lowestAvg)} vs ${formatMetric(highestAvg)})`
     ];
-    onApply(newNotes);
+    onApply(newNotes, {
+      bestHookType,
+      bestHookAvg,
+      otherAvg,
+      multiplier,
+      eveningDiffPct,
+      avgEvening,
+      avgMorning,
+      weakestPlatform,
+      lowestAvg,
+      highestAvg
+    });
     setSavedConfirmation(true);
   };
 
@@ -27,7 +52,7 @@ export default function SuggestionsCard({
     <div className="suggestions-card">
       <h3 className="suggestions-title">Next suggestions</h3>
 
-      {/* Dynamic computed lines */}
+      {/* Dynamic computed lines with real numbers */}
       <div className="suggestions-list">
         {bestHookType === '—' ? (
           <div className="suggestion-item">
@@ -38,27 +63,27 @@ export default function SuggestionsCard({
           </div>
         ) : (
           <>
-            {/* Line 1: Best Hook Multiplier */}
+            {/* Line 1: Best Hook Multiplier + exact numbers */}
             <div className="suggestion-item">
               <span className="suggestion-bullet" />
               <p className="suggestion-text">
-                Your <strong>{bestHookType}</strong> hooks get <strong>{multiplier}x</strong> more views than other hooks. Double down on questions.
+                Your <strong>{bestHookType}</strong> hooks get <strong>{multiplier}x</strong> more views ({formatMetric(bestHookAvg)} vs {formatMetric(otherAvg)} for other hooks). Double down on questions.
               </p>
             </div>
 
-            {/* Line 2: Evening vs Morning percentage */}
+            {/* Line 2: Evening vs Morning percentage + exact numbers */}
             <div className="suggestion-item">
               <span className="suggestion-bullet" />
               <p className="suggestion-text">
-                Evening posts (after 5 PM) perform <strong>{eveningDiffPct}%</strong> better than morning posts. Move more clips to 6 PM - 8 PM.
+                Evening posts (after 5 PM) perform <strong>{eveningDiffPct}%</strong> better than morning posts ({formatMetric(avgEvening)} vs {formatMetric(avgMorning)} views). Move more clips to 6 PM - 8 PM.
               </p>
             </div>
 
-            {/* Line 3: Weakest platform */}
+            {/* Line 3: Weakest platform + comparison numbers */}
             <div className="suggestion-item">
               <span className="suggestion-bullet" />
               <p className="suggestion-text">
-                Your <strong>{weakestPlatform}</strong> views are lagging. Try shorter hooks on {weakestPlatform}.
+                Your <strong>{weakestPlatform}</strong> views are lagging ({formatMetric(lowestAvg)} vs {formatMetric(highestAvg)} on {strongestPlatform || 'other channels'}). Try shorter hooks on {weakestPlatform}.
               </p>
             </div>
           </>

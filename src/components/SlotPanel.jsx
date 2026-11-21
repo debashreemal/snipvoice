@@ -110,8 +110,17 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
 
         {/* Why this slot rationale */}
         <div className="slot-panel-reason-box">
-          <span className="slot-panel-reason-label">WHY THIS TIME SLOT</span>
-          <p className="slot-panel-reason-text">{slot.reason}</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span className="slot-panel-reason-label">WHY THIS TIME SLOT</span>
+            {slot.changed_because && (
+              <span className="slot-changed-tag" title={slot.changed_because}>
+                Changed
+              </span>
+            )}
+          </div>
+          <p className="slot-panel-reason-text">
+            {slot.changed_because || slot.reason}
+          </p>
         </div>
 
         {/* Dropdowns for Day and Time */}
