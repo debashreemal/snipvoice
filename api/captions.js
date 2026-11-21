@@ -210,7 +210,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const { clipId } = body || {};
+    const { clipId, language = 'Hinglish', forceOverwrite = false } = body || {};
     let rawPlatforms = body?.platforms;
     if (!Array.isArray(rawPlatforms) || rawPlatforms.length === 0) {
       rawPlatforms = ['Instagram', 'LinkedIn', 'X'];
@@ -293,7 +293,18 @@ export default async function handler(req, res) {
         .join('\n\n');
     }
 
-    const systemPrompt = `You write social media captions for an Indian creator, in the creator's own voice. Write in the same language style as the clip content (Hinglish stays Hinglish, in Roman letters). Return JSON only: {"captions":[{"platform":"Instagram|LinkedIn|X","text":"..."}]}.
+    let langInstruction = 'Write in natural Hinglish (conversational mix of Hindi and English in Roman letters, as popular Indian creators write on social media).';
+    if (language === 'Hindi') {
+      langInstruction = 'Write in pure Hindi using Devanagari script (हिन्दी). Do not write in Roman script.';
+    } else if (language === 'English') {
+      langInstruction = 'Write in clean, engaging modern English (no Devanagari, no Hindi words).';
+    } else if (language === 'Hinglish') {
+      langInstruction = 'Write in natural Hinglish (conversational mix of Hindi and English in Roman letters, as popular Indian creators write on social media).';
+    }
+
+    const systemPrompt = `You write social media captions for an Indian creator, in the creator's own voice.
+Language requirement: ${langInstruction}
+Return JSON only: {"captions":[{"platform":"Instagram|LinkedIn|X","text":"..."}]}.
 Platform rules: Instagram is short, conversational, with a hook in the first line. LinkedIn is a bit longer, a clear point and a takeaway, no hashtag spam. X is under 280 characters.
 VOICE RULES (highest priority, always follow them): tone is ${toneStr}. Use these words when natural: ${useWordsStr}. Never use these words: ${avoidWordsStr}. Learned style notes: ${notesStr}.
 STYLE EXAMPLES from this creator's own edits. Match the style of the AFTER versions, not the BEFORE versions:
@@ -303,6 +314,7 @@ ${notesStr === 'None yet.' && beforeAfterStr === 'None yet.' ? 'If there are no 
     const userPrompt = `Hook: "${clip.hook}"
 Hook Type: ${clip.hook_type || 'Bold claim'}
 Why Picked: ${clip.reason || 'High retention moment'}
+Requested Language: ${language} (${langInstruction})
 Clip Content:
 ${clipContent}
 
@@ -372,18 +384,19 @@ Generate captions ONLY for these platforms: ${requestedPlatforms.join(', ')}.`;
 
       if (existing) {
         savedId = existing.id;
-        if (!existing.edited_text) {
-          // Unedited -> overwrite original_text and voice_match
+        if (!existing.edited_text || forceOverwrite) {
+          // Unedited or user forced regeneration -> overwrite with newly generated text
           await sb
             .from('captions')
             .update({
               original_text: text,
+              edited_text: forceOverwrite ? null : existing.edited_text,
               voice_match: voiceMatch,
             })
             .eq('id', existing.id);
           returnedText = text;
         } else {
-          // If it was edited, preserve existing.edited_text
+          // If it was edited and forceOverwrite was false, preserve existing.edited_text
           returnedText = existing.edited_text;
         }
       } else {

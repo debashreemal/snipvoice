@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { Instagram, Linkedin, Twitter, RefreshCw, Loader2 } from 'lucide-react';
+import {
+  Instagram,
+  Linkedin,
+  Twitter,
+  RefreshCw,
+  Loader2,
+  Copy,
+  Check,
+  Globe,
+  Columns,
+} from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import BeforeAfterPanel from './BeforeAfterPanel';
 import { apiFetch } from '../lib/api';
@@ -14,6 +24,8 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
     updateSingleCaption,
   } = useAppContext();
 
+  const [copied, setCopied] = useState(false);
+  const [language, setLanguage] = useState('Hinglish');
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -31,8 +43,20 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
     return <Twitter size={16} strokeWidth={2.2} />;
   };
 
+  // 1-Click Copy handler with visual feedback
+  const handleCopy = async () => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy caption:', err);
+    }
+  };
+
   // Perform single platform regeneration via /api/captions
-  const handleExecuteRegenerate = async () => {
+  const handleExecuteRegenerate = async (targetLang = language, force = false) => {
     setIsRegenerating(true);
     setShowConfirm(false);
 
@@ -42,6 +66,8 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
         body: {
           clipId,
           platforms: [name],
+          language: targetLang,
+          forceOverwrite: force,
         },
       });
 
@@ -63,22 +89,42 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
     }
   };
 
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    handleExecuteRegenerate(newLang, true);
+  };
+
   const handleRegenerateClick = () => {
     if (isEdited) {
       // Do not overwrite edited caption without confirmation
       setShowConfirm(true);
     } else {
-      handleExecuteRegenerate();
+      handleExecuteRegenerate(language, false);
     }
   };
 
   return (
     <div className="caption-card">
-      {/* Top row: Platform name, icon, character count */}
+      {/* Top row: Platform name, icon, language switcher, character count */}
       <div className="caption-card-header">
         <div className="caption-platform-info">
           <span className="caption-platform-icon">{renderIcon()}</span>
           <span className="caption-platform-name">{name}</span>
+
+          {/* In-Card Language Selector */}
+          <div className="caption-lang-group" title="Change caption language">
+            <Globe size={12} strokeWidth={2.4} />
+            <select
+              className="caption-lang-select"
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              disabled={isParentLoading || isRegenerating}
+            >
+              <option value="Hinglish">Hinglish</option>
+              <option value="English">English</option>
+              <option value="Hindi">Hindi (हिंदी)</option>
+            </select>
+          </div>
         </div>
 
         <div className={`caption-char-count ${isOverLimit ? 'over-limit' : ''}`}>
@@ -92,7 +138,7 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
         rows={6}
         value={text || ''}
         onChange={(e) => updateCaptionText(projectId, clipId, platformId, e.target.value)}
-        placeholder={`Draft ${name} caption...`}
+        placeholder={`Draft ${name} caption in ${language}...`}
         disabled={isParentLoading || isRegenerating}
       />
 
@@ -103,7 +149,7 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
           <span className="caption-voice-percent">
             {voiceMatch !== null && voiceMatch !== undefined
               ? `${voiceMatch}%`
-              : 'No style learned yet'}
+              : 'Learning your tone'}
           </span>
         </div>
         {voiceMatch !== null && voiceMatch !== undefined && (
@@ -119,15 +165,15 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
       {/* Inline confirmation when regenerating an edited caption */}
       {showConfirm && (
         <div className="caption-confirm-overwrite">
-          <span className="caption-confirm-text">Replace your edited version?</span>
+          <span className="caption-confirm-text">Replace your customized version?</span>
           <div className="caption-confirm-btns">
             <button
               type="button"
               className="btn-confirm-yes"
-              onClick={handleExecuteRegenerate}
+              onClick={() => handleExecuteRegenerate(language, true)}
               disabled={isRegenerating}
             >
-              Yes
+              Yes, rewrite
             </button>
             <button
               type="button"
@@ -135,13 +181,13 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
               onClick={() => setShowConfirm(false)}
               disabled={isRegenerating}
             >
-              No
+              Cancel
             </button>
           </div>
         </div>
       )}
 
-      {/* Bottom Action Row: Save edit, Regenerate, See before & after */}
+      {/* Action Row: Primary buttons (Save edit, Copy, Regenerate) + Secondary (See before & after) */}
       <div className="caption-actions-row">
         <div className="caption-primary-actions">
           <button
@@ -149,8 +195,31 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
             className="btn-save-edit"
             onClick={() => saveCaptionEdit(projectId, clipId, platformId)}
             disabled={isParentLoading || isRegenerating}
+            title="Save this edit to train your personal style model"
           >
-            {isEdited ? 'Update edit' : 'Save edit'}
+            <Check size={14} strokeWidth={2.4} />
+            <span>{isEdited ? 'Update edit' : 'Save edit'}</span>
+          </button>
+
+          {/* Dedicated 1-Click Copy Paste Button */}
+          <button
+            type="button"
+            className={`btn-copy-caption ${copied ? 'is-copied' : ''}`}
+            onClick={handleCopy}
+            disabled={!text}
+            title="Ready to copy & paste to social media"
+          >
+            {copied ? (
+              <>
+                <Check size={14} strokeWidth={2.4} />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={14} strokeWidth={2.2} />
+                <span>Copy</span>
+              </>
+            )}
           </button>
 
           <button
@@ -174,18 +243,28 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
           </button>
         </div>
 
-        {/* See before & after button */}
-        <button
-          type="button"
-          className="btn-toggle-diff"
-          onClick={() => setShowBeforeAfter((prev) => !prev)}
-          disabled={isParentLoading || isRegenerating}
-        >
-          {showBeforeAfter ? 'Hide diff' : 'See before & after'}
-        </button>
+        <div className="caption-secondary-actions">
+          {/* Properly styled Before & After Diff Button */}
+          <button
+            type="button"
+            className="btn-toggle-diff"
+            onClick={() => setShowBeforeAfter(true)}
+            disabled={isParentLoading || isRegenerating}
+            title="Compare initial AI draft vs your edits"
+          >
+            <Columns size={13} strokeWidth={2.2} />
+            <span>See before & after</span>
+          </button>
+
+          {isEdited && (
+            <span className="caption-edited-pill" title="You customized this caption">
+              Customized
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Expandable Before & After Diff Panel */}
+      {/* Expandable Before & After Diff Modal */}
       {showBeforeAfter && (
         <BeforeAfterPanel
           original={original}
