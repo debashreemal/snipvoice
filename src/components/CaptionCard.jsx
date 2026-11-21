@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { Instagram, Linkedin, Twitter, RefreshCw } from 'lucide-react';
+import { Instagram, Linkedin, Twitter, RefreshCw, Loader2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import BeforeAfterPanel from './BeforeAfterPanel';
+import { apiFetch } from '../lib/api';
 
 // Individual caption card per platform for a specific project
-export default function CaptionCard({ clipId, platform, projectId }) {
+export default function CaptionCard({ clipId, platform, projectId, isParentLoading }) {
   const { id: platformId, name, maxChars } = platform;
-  const { getCaptionData, updateCaptionText, saveCaptionEdit, regenerateCaption } = useAppContext();
+  const {
+    getCaptionData,
+    updateCaptionText,
+    saveCaptionEdit,
+    updateSingleCaption,
+  } = useAppContext();
 
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const captionData = getCaptionData(projectId, clipId, platformId);
   const { text, original, voiceMatch, isEdited } = captionData;
@@ -23,9 +31,50 @@ export default function CaptionCard({ clipId, platform, projectId }) {
     return <Twitter size={16} strokeWidth={2.2} />;
   };
 
+  // Perform single platform regeneration via /api/captions
+  const handleExecuteRegenerate = async () => {
+    setIsRegenerating(true);
+    setShowConfirm(false);
+
+    try {
+      const data = await apiFetch('/api/captions', {
+        method: 'POST',
+        body: {
+          clipId,
+          platforms: [name],
+        },
+      });
+
+      if (data && Array.isArray(data.captions) && data.captions.length > 0) {
+        const item = data.captions[0];
+        updateSingleCaption(
+          projectId,
+          clipId,
+          platformId,
+          item.text,
+          item.voice_match,
+          item.id
+        );
+      }
+    } catch (err) {
+      console.error('Failed to regenerate caption:', err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleRegenerateClick = () => {
+    if (isEdited) {
+      // Do not overwrite edited caption without confirmation
+      setShowConfirm(true);
+    } else {
+      handleExecuteRegenerate();
+    }
+  };
+
   return (
     <div className="caption-card">
-      {/* Top row: Platform name, icon, character count (no color dot) */}
+      {/* Top row: Platform name, icon, character count */}
       <div className="caption-card-header">
         <div className="caption-platform-info">
           <span className="caption-platform-icon">{renderIcon()}</span>
@@ -44,21 +93,53 @@ export default function CaptionCard({ clipId, platform, projectId }) {
         value={text || ''}
         onChange={(e) => updateCaptionText(projectId, clipId, platformId, e.target.value)}
         placeholder={`Draft ${name} caption...`}
+        disabled={isParentLoading || isRegenerating}
       />
 
       {/* Voice Match Line + Flat Progress Bar */}
       <div className="caption-voice-match-section">
         <div className="caption-voice-match-header">
           <span className="caption-voice-label">Voice match</span>
-          <span className="caption-voice-percent">{voiceMatch}%</span>
+          <span className="caption-voice-percent">
+            {voiceMatch !== null && voiceMatch !== undefined
+              ? `${voiceMatch}%`
+              : 'No style learned yet'}
+          </span>
         </div>
-        <div className="caption-voice-track">
-          <div
-            className="caption-voice-bar"
-            style={{ width: `${Math.min(100, voiceMatch)}%` }}
-          />
-        </div>
+        {voiceMatch !== null && voiceMatch !== undefined && (
+          <div className="caption-voice-track">
+            <div
+              className="caption-voice-bar"
+              style={{ width: `${Math.min(100, voiceMatch)}%` }}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Inline confirmation when regenerating an edited caption */}
+      {showConfirm && (
+        <div className="caption-confirm-overwrite">
+          <span className="caption-confirm-text">Replace your edited version?</span>
+          <div className="caption-confirm-btns">
+            <button
+              type="button"
+              className="btn-confirm-yes"
+              onClick={handleExecuteRegenerate}
+              disabled={isRegenerating}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              className="btn-confirm-no"
+              onClick={() => setShowConfirm(false)}
+              disabled={isRegenerating}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Action Row: Save edit, Regenerate, See before & after */}
       <div className="caption-actions-row">
@@ -67,6 +148,7 @@ export default function CaptionCard({ clipId, platform, projectId }) {
             type="button"
             className="btn-save-edit"
             onClick={() => saveCaptionEdit(projectId, clipId, platformId)}
+            disabled={isParentLoading || isRegenerating}
           >
             {isEdited ? 'Update edit' : 'Save edit'}
           </button>
@@ -74,11 +156,21 @@ export default function CaptionCard({ clipId, platform, projectId }) {
           <button
             type="button"
             className="btn-regenerate"
-            onClick={() => regenerateCaption(projectId, clipId, platformId)}
+            onClick={handleRegenerateClick}
+            disabled={isParentLoading || isRegenerating}
             title="Regenerate caption with your learned style"
           >
-            <RefreshCw size={14} strokeWidth={2.2} />
-            <span>Regenerate</span>
+            {isRegenerating ? (
+              <>
+                <Loader2 size={14} strokeWidth={2.4} className="spin-icon" />
+                <span>Writing...</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw size={14} strokeWidth={2.2} />
+                <span>Regenerate</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -87,6 +179,7 @@ export default function CaptionCard({ clipId, platform, projectId }) {
           type="button"
           className="btn-toggle-diff"
           onClick={() => setShowBeforeAfter((prev) => !prev)}
+          disabled={isParentLoading || isRegenerating}
         >
           {showBeforeAfter ? 'Hide diff' : 'See before & after'}
         </button>

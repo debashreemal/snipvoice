@@ -41,7 +41,7 @@ export function AppProvider({ children }) {
     return projects.find((p) => p.id === projectId) || projects[0];
   };
 
-  // Create a new project
+  // Create a new project (client fallback)
   const createProject = ({ title, transcript }) => {
     const newId = `proj-${Date.now()}`;
     const newClips = MOCK_CLIPS_D2C.map((clip, idx) => ({
@@ -59,6 +59,54 @@ export function AppProvider({ children }) {
       captionsState: generateCaptionsStateForClips(newClips, false),
       scheduledCount: 0,
       postedCount: 0
+    };
+
+    setProjects((prev) => [newProject, ...prev]);
+    return newProject;
+  };
+
+  // Add a project created via backend /api/pick-clips
+  const addRealProject = ({ project, clips }) => {
+    const parseSec = (t) => {
+      if (!t) return 0;
+      const parts = String(t).replace(/[\[\]]/g, '').trim().split(':').map(Number);
+      if (parts.length === 2) return parts[0] * 60 + parts[1];
+      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      return 0;
+    };
+
+    const formattedClips = (clips || []).map((c) => {
+      let durationStr = '45 sec';
+      if (c.start_time && c.end_time) {
+        const diff = parseSec(c.end_time) - parseSec(c.start_time);
+        if (diff > 0) durationStr = `${diff} sec`;
+      } else if (c.duration) {
+        durationStr = c.duration;
+      }
+
+      return {
+        id: c.id,
+        project_id: project.id,
+        timeRange: c.timeRange || `${c.start_time} - ${c.end_time}`,
+        duration: durationStr,
+        hookLine: c.hook || c.hookLine || '',
+        hookType: c.hook_type || c.hookType || 'Bold claim',
+        reason: c.reason || '',
+        score: typeof c.score === 'number' ? c.score : (parseInt(c.score, 10) || 85),
+        status: null // starts as null, creator clicks Approve / Reject
+      };
+    });
+
+    const newProject = {
+      id: project.id,
+      title: project.title || 'Untitled Project',
+      createdAt: 'Just now',
+      transcript: project.transcript || '',
+      clips: formattedClips,
+      captionsState: {},
+      scheduledCount: 0,
+      postedCount: 0,
+      status: project.status || 'clips_pending'
     };
 
     setProjects((prev) => [newProject, ...prev]);
@@ -134,14 +182,66 @@ export function AppProvider({ children }) {
     }
 
     const project = getProject(targetProjectId);
-    const key = `${targetClipId}_${targetPlatform}`;
+    const platKey = String(targetPlatform || '').toLowerCase();
+    const key = `${targetClipId}_${platKey}`;
     return (
       project?.captionsState?.[key] || {
         text: '',
         original: '',
-        voiceMatch: 58,
+        voiceMatch: null,
         isEdited: false
       }
+    );
+  };
+
+  // Set all captions for a clip (e.g. from /api/captions response or database)
+  const setClipCaptions = (projectId, clipId, captionsList) => {
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project.id === projectId) {
+          const updatedState = { ...(project.captionsState || {}) };
+          for (const item of captionsList) {
+            const platKey = String(item.platform || '').toLowerCase();
+            const key = `${clipId}_${platKey}`;
+            const existing = updatedState[key];
+            updatedState[key] = {
+              id: item.id || existing?.id,
+              text: item.text,
+              original: item.original || item.text,
+              voiceMatch: item.voice_match !== undefined ? item.voice_match : (item.voiceMatch !== undefined ? item.voiceMatch : null),
+              isEdited: Boolean(item.isEdited),
+            };
+          }
+          return { ...project, captionsState: updatedState };
+        }
+        return project;
+      })
+    );
+  };
+
+  // Update a single platform caption (e.g. on Regenerate)
+  const updateSingleCaption = (projectId, clipId, platform, newText, newVoiceMatch, newId) => {
+    const platKey = String(platform || '').toLowerCase();
+    const key = `${clipId}_${platKey}`;
+    setProjects((prev) =>
+      prev.map((project) => {
+        if (project.id === projectId) {
+          const existing = project.captionsState?.[key] || {};
+          const updatedState = {
+            ...(project.captionsState || {}),
+            [key]: {
+              ...existing,
+              id: newId || existing.id,
+              text: newText,
+              original: newText,
+              voiceMatch: newVoiceMatch !== undefined ? newVoiceMatch : null,
+              isEdited: false, // reset edited flag on fresh regeneration
+            },
+          };
+          return { ...project, captionsState: updatedState };
+        }
+        return project;
+      })
     );
   };
 
@@ -471,12 +571,15 @@ export function AppProvider({ children }) {
         projects,
         getProject,
         createProject,
+        addRealProject,
         // Clips within projects
         handleApprove,
         handleReject,
         // Captions within projects
         getCaptionData,
         updateCaptionText,
+        setClipCaptions,
+        updateSingleCaption,
         saveCaptionEdit,
         regenerateCaption,
         // Global Brand Voice

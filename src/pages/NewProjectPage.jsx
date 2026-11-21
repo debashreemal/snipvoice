@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { SAMPLE_TRANSCRIPT } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
+import { apiFetch } from '../lib/api';
 
-// New Project Page: Ingest transcript and create project in store
+// New Project Page: Ingest transcript and create real project via /api/pick-clips
 export default function NewProjectPage() {
   const navigate = useNavigate();
-  const { brandVoice, createProject } = useAppContext();
+  const { brandVoice, addRealProject } = useAppContext();
 
   const [projectTitle, setProjectTitle] = useState('');
   const [transcript, setTranscript] = useState('');
   const [tone, setTone] = useState(brandVoice.tone || 'Direct');
   const [wordsIUse, setWordsIUse] = useState(brandVoice.wordsIUse || '');
   const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice.wordsIAvoid || '');
+
+  // Loading & error states
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   // Load sample transcript into form fields
   const handleLoadSample = () => {
@@ -22,26 +27,74 @@ export default function NewProjectPage() {
     setTone('Direct');
     setWordsIUse('Jugaad, Hustle, Organic reach, Consistency');
     setWordsIAvoid('Viral hack, Synergy, Guru, Guaranteed');
+    setErrorMessage(null);
   };
 
-  // Immediate sample run
+  // Execute pick-clips API call and store returned project with database IDs
+  const executePickClips = async (titleToUse, transcriptToUse) => {
+    const cleanTitle = (titleToUse || '').trim();
+    const cleanTranscript = (transcriptToUse || '').trim();
+
+    if (!cleanTitle) {
+      setErrorMessage('Please enter a project title.');
+      return;
+    }
+    if (!cleanTranscript) {
+      setErrorMessage('Please paste a transcript with timestamps.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await apiFetch('/api/pick-clips', {
+        method: 'POST',
+        body: {
+          title: cleanTitle,
+          transcript: cleanTranscript,
+        },
+      });
+
+      if (!data || !data.project || !data.clips) {
+        throw new Error('Could not pick clips. Check your transcript and try again.');
+      }
+
+      // Add project and database-persisted clips into shared store
+      const newProj = addRealProject({
+        project: data.project,
+        clips: data.clips,
+      });
+
+      navigate(`/projects/${newProj.id}/clips`);
+    } catch (err) {
+      console.error('Pick clips error:', err);
+      setErrorMessage(
+        err.message || 'Could not pick clips. Check your transcript and try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Immediate sample run using the real API route
   const handleTryWithSample = () => {
     const sampleTitle = 'Episode 14: Tier 2 Audiences & The Honest Creator Economy';
-    const newProj = createProject({
-      title: sampleTitle,
-      transcript: SAMPLE_TRANSCRIPT
-    });
-    navigate(`/projects/${newProj.id}/clips`);
+    setProjectTitle(sampleTitle);
+    setTranscript(SAMPLE_TRANSCRIPT);
+    setTone('Direct');
+    setWordsIUse('Jugaad, Hustle, Organic reach, Consistency');
+    setWordsIAvoid('Viral hack, Synergy, Guru, Guaranteed');
+    executePickClips(sampleTitle, SAMPLE_TRANSCRIPT);
   };
 
   const handleFindClips = (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     const title = projectTitle.trim() || 'Untitled Project';
-    const newProj = createProject({
-      title,
-      transcript: transcript || SAMPLE_TRANSCRIPT
-    });
-    navigate(`/projects/${newProj.id}/clips`);
+    const transcriptToUse = transcript.trim();
+    executePickClips(title, transcriptToUse);
   };
 
   return (
@@ -79,8 +132,9 @@ export default function NewProjectPage() {
           type="button"
           className="btn-try-sample"
           onClick={handleTryWithSample}
+          disabled={isLoading}
         >
-          Try with sample
+          {isLoading ? 'Processing...' : 'Try with sample'}
         </button>
       </div>
 
@@ -97,6 +151,7 @@ export default function NewProjectPage() {
             placeholder="e.g. Scaling an Indian D2C Brand from Zero"
             value={projectTitle}
             onChange={(e) => setProjectTitle(e.target.value)}
+            disabled={isLoading}
           />
         </div>
 
@@ -110,6 +165,7 @@ export default function NewProjectPage() {
               type="button"
               className="btn-secondary"
               onClick={handleLoadSample}
+              disabled={isLoading}
             >
               Load sample transcript
             </button>
@@ -121,6 +177,7 @@ export default function NewProjectPage() {
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
             rows={5}
+            disabled={isLoading}
           />
         </div>
 
@@ -142,6 +199,7 @@ export default function NewProjectPage() {
                 className="form-select"
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
+                disabled={isLoading}
               >
                 <option value="Direct">Direct & Punchy</option>
                 <option value="Casual">Casual Hinglish</option>
@@ -161,6 +219,7 @@ export default function NewProjectPage() {
                 placeholder="e.g. Jugaad, Hustle, Organic reach"
                 value={wordsIUse}
                 onChange={(e) => setWordsIUse(e.target.value)}
+                disabled={isLoading}
               />
             </div>
 
@@ -175,6 +234,7 @@ export default function NewProjectPage() {
                 placeholder="e.g. Viral hack, Synergy, Guru"
                 value={wordsIAvoid}
                 onChange={(e) => setWordsIAvoid(e.target.value)}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -182,11 +242,42 @@ export default function NewProjectPage() {
 
         {/* Primary Action Button */}
         <div className="form-actions">
-          <button type="submit" className="btn-primary">
-            <span>Find best clips</span>
-            <ArrowRight size={16} strokeWidth={2.4} />
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={16} strokeWidth={2.4} className="spin-icon" />
+                <span>Finding your best moments...</span>
+              </>
+            ) : (
+              <>
+                <span>Find best clips</span>
+                <ArrowRight size={16} strokeWidth={2.4} />
+              </>
+            )}
           </button>
         </div>
+
+        {/* Error message under the button with Try again */}
+        {errorMessage && (
+          <div className="upload-error-box">
+            <div className="upload-error-left">
+              <AlertCircle size={18} strokeWidth={2.4} />
+              <span className="upload-error-text">{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              className="btn-try-again"
+              onClick={handleFindClips}
+              disabled={isLoading}
+            >
+              Try again
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
