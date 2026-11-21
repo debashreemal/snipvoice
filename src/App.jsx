@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Sidebar from './components/Sidebar';
 import LearnedPanel from './components/LearnedPanel';
-import MiniCalendar from './components/MiniCalendar';
 import ProjectsPage from './pages/ProjectsPage';
 import NewProjectPage from './pages/NewProjectPage';
 import ClipsPage from './pages/ClipsPage';
@@ -50,10 +49,9 @@ export default function App() {
             </Routes>
           </main>
 
-          {/* Right side panel: Global Learned Notes & Mini Calendar */}
+          {/* Right side panel: Global Learned Notes */}
           <aside className="side-panel">
             <LearnedPanel />
-            <MiniCalendar />
           </aside>
         </div>
       </div>

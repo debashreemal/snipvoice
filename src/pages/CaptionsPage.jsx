@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import ProjectWorkspaceLayout from '../components/ProjectWorkspaceLayout';
 import ClipCaptionSection from '../components/ClipCaptionSection';
@@ -8,11 +8,18 @@ import { Calendar } from 'lucide-react';
 // Captions Page scoped to /projects/:id/captions
 export default function CaptionsPage() {
   const { id } = useParams();
-  const { getProject, projects } = useAppContext();
+  const navigate = useNavigate();
+  const { getProject, projects, autoPlanWeek } = useAppContext();
 
   const project = getProject(id) || projects[0];
   const clips = project?.clips || [];
   const approvedClips = clips.filter((c) => c.status === 'approved');
+
+  const handleSendToCalendar = () => {
+    if (!project) return;
+    autoPlanWeek(project.id, true);
+    navigate(`/calendar?project=${project.id}`);
+  };
 
   return (
     <ProjectWorkspaceLayout project={project} activeTab="captions">
@@ -52,13 +59,14 @@ export default function CaptionsPage() {
         {/* Bottom Right Next-Step Button */}
         {approvedClips.length > 0 && (
           <div className="page-bottom-actions">
-            <Link
-              to={`/calendar?project=${project.id}`}
+            <button
+              type="button"
+              onClick={handleSendToCalendar}
               className="btn-bottom-next"
             >
               <span>Send to calendar</span>
               <Calendar size={16} strokeWidth={2.4} />
-            </Link>
+            </button>
           </div>
         )}
       </div>

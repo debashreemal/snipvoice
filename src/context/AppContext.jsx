@@ -431,23 +431,30 @@ export function AppProvider({ children }) {
     setBrandVoice((prev) => ({ ...prev, ...newVoice }));
   };
 
-  // Auto-plan week slots with 1-second loading animation
-  const autoPlanWeek = (projectId) => {
+  // Auto-plan week slots (supports immediate mode for Send to Calendar)
+  const autoPlanWeek = (projectId, immediate = false) => {
     const targetProject = projectId ? getProject(projectId) : projects[0];
     const approvedClips = targetProject?.clips?.filter((c) => c.status === 'approved') || [];
-    if (approvedClips.length === 0) return;
+    if (approvedClips.length === 0) return [];
+
+    const slots = generateAutoPlanSlots(
+      approvedClips,
+      targetProject.id,
+      targetProject.title,
+      hasAppliedInsights
+    );
+
+    if (immediate) {
+      setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== targetProject.id)]);
+      return slots;
+    }
 
     setIsAutoPlanning(true);
     setTimeout(() => {
-      const slots = generateAutoPlanSlots(
-        approvedClips,
-        targetProject.id,
-        targetProject.title,
-        hasAppliedInsights
-      );
       setScheduledSlots((prev) => [...slots, ...prev.filter((s) => s.projectId !== targetProject.id)]);
       setIsAutoPlanning(false);
     }, 1000);
+    return slots;
   };
 
   // Update a single slot
