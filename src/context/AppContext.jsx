@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiFetch } from '../lib/api';
 import {
   INITIAL_PROJECTS,
   INITIAL_BRAND_VOICE,
@@ -35,6 +36,34 @@ export function AppProvider({ children }) {
 
   // Overrides for performance metrics (views, likes, hookType)
   const [postOverrides, setPostOverrides] = useState({});
+
+  // Fetch persisted projects, brand voice, notes, and edits from Supabase on mount
+  useEffect(() => {
+    let isMounted = true;
+    apiFetch('/api/projects')
+      .then((data) => {
+        if (!isMounted || !data) return;
+        if (Array.isArray(data.projects) && data.projects.length > 0) {
+          setProjects(data.projects);
+        }
+        if (data.brandVoice) {
+          setBrandVoice((prev) => ({ ...prev, ...data.brandVoice }));
+        }
+        if (Array.isArray(data.learnedNotes) && data.learnedNotes.length > 0) {
+          setLearnedNotes(data.learnedNotes);
+        }
+        if (Array.isArray(data.edits) && data.edits.length > 0) {
+          setEdits(data.edits);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load existing projects from Supabase:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Get project helper
   const getProject = (projectId) => {
@@ -124,13 +153,14 @@ export function AppProvider({ children }) {
       targetClipId = projectIdOrClipId;
     }
 
+    let nextStatus = 'approved';
     setProjects((prev) =>
       prev.map((project) => {
         if (project.id === targetProjectId) {
           const updatedClips = project.clips.map((c) => {
             if (c.id === targetClipId) {
-              const nextStatus = c.status === 'approved' ? null : 'approved';
-              return { ...c, status: nextStatus };
+              nextStatus = c.status === 'approved' ? 'pending' : 'approved';
+              return { ...c, status: nextStatus === 'pending' ? null : nextStatus };
             }
             return c;
           });
@@ -139,6 +169,12 @@ export function AppProvider({ children }) {
         return project;
       })
     );
+
+    // Persist status to Supabase in background
+    apiFetch('/api/update-clip-status', {
+      method: 'POST',
+      body: { clipId: targetClipId, status: nextStatus },
+    }).catch((err) => console.warn('Could not update clip status in Supabase:', err));
   };
 
   // Toggle clip rejection for a specific project
@@ -151,13 +187,14 @@ export function AppProvider({ children }) {
       targetClipId = projectIdOrClipId;
     }
 
+    let nextStatus = 'rejected';
     setProjects((prev) =>
       prev.map((project) => {
         if (project.id === targetProjectId) {
           const updatedClips = project.clips.map((c) => {
             if (c.id === targetClipId) {
-              const nextStatus = c.status === 'rejected' ? null : 'rejected';
-              return { ...c, status: nextStatus };
+              nextStatus = c.status === 'rejected' ? 'pending' : 'rejected';
+              return { ...c, status: nextStatus === 'pending' ? null : nextStatus };
             }
             return c;
           });
@@ -166,6 +203,12 @@ export function AppProvider({ children }) {
         return project;
       })
     );
+
+    // Persist status to Supabase in background
+    apiFetch('/api/update-clip-status', {
+      method: 'POST',
+      body: { clipId: targetClipId, status: nextStatus },
+    }).catch((err) => console.warn('Could not update clip status in Supabase:', err));
   };
 
   // Get caption data for a project + clip + platform
@@ -384,6 +427,19 @@ export function AppProvider({ children }) {
         return proj;
       })
     );
+
+    // Persist edit and learned notes to Supabase in background
+    apiFetch('/api/save-edit', {
+      method: 'POST',
+      body: {
+        projectId: project.id,
+        clipId: targetClipId,
+        platform: targetPlatform,
+        originalText: original,
+        editedText: edited,
+        detectedNotes,
+      },
+    }).catch((err) => console.warn('Could not save edit to Supabase:', err));
   };
 
   // Regenerate caption text
@@ -429,6 +485,10 @@ export function AppProvider({ children }) {
   // Update Global Brand Voice Profile
   const updateBrandVoice = (newVoice) => {
     setBrandVoice((prev) => ({ ...prev, ...newVoice }));
+    apiFetch('/api/brand-voice', {
+      method: 'POST',
+      body: newVoice,
+    }).catch((err) => console.warn('Could not update brand voice in Supabase:', err));
   };
 
   // Auto-plan week slots (supports immediate mode for Send to Calendar)
