@@ -51,6 +51,18 @@ export default function PerformancePage() {
   // Pattern detection computed live on every metric edit
   const analysis = useMemo(() => {
     const posts = filteredPosts || [];
+    if (posts.length === 0) {
+      return {
+        avgViews: 0,
+        avgLikes: 0,
+        hookStats: HOOK_TYPES.map((type) => ({ type, avgViews: 0, count: 0 })),
+        bestHookType: '—',
+        multiplier: '0',
+        eveningDiffPct: 0,
+        weakestPlatform: '—'
+      };
+    }
+
     const count = posts.length || 1;
 
     // 1. Overall averages
@@ -176,7 +188,7 @@ export default function PerformancePage() {
         <StatCard
           label="Best hook type"
           value={analysis.bestHookType}
-          sublabel={`~${analysis.multiplier}x higher views`}
+          sublabel={analysis.bestHookType === '—' ? 'Needs published posts' : `~${analysis.multiplier}x higher views`}
         />
       </div>
 

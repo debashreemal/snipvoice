@@ -27,31 +27,42 @@ export default function SuggestionsCard({
     <div className="suggestions-card">
       <h3 className="suggestions-title">Next suggestions</h3>
 
-      {/* 3 Dynamic computed lines */}
+      {/* Dynamic computed lines */}
       <div className="suggestions-list">
-        {/* Line 1: Best Hook Multiplier */}
-        <div className="suggestion-item">
-          <span className="suggestion-bullet" />
-          <p className="suggestion-text">
-            Your <strong>{bestHookType}</strong> hooks get <strong>{multiplier}x</strong> more views than other hooks. Double down on questions.
-          </p>
-        </div>
+        {bestHookType === '—' ? (
+          <div className="suggestion-item">
+            <span className="suggestion-bullet" />
+            <p className="suggestion-text">
+              Publish posts on the Calendar and enter metrics to unlock AI performance suggestions and scheduling optimizations.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Line 1: Best Hook Multiplier */}
+            <div className="suggestion-item">
+              <span className="suggestion-bullet" />
+              <p className="suggestion-text">
+                Your <strong>{bestHookType}</strong> hooks get <strong>{multiplier}x</strong> more views than other hooks. Double down on questions.
+              </p>
+            </div>
 
-        {/* Line 2: Evening vs Morning percentage */}
-        <div className="suggestion-item">
-          <span className="suggestion-bullet" />
-          <p className="suggestion-text">
-            Evening posts (after 5 PM) perform <strong>{eveningDiffPct}%</strong> better than morning posts. Move more clips to 6 PM - 8 PM.
-          </p>
-        </div>
+            {/* Line 2: Evening vs Morning percentage */}
+            <div className="suggestion-item">
+              <span className="suggestion-bullet" />
+              <p className="suggestion-text">
+                Evening posts (after 5 PM) perform <strong>{eveningDiffPct}%</strong> better than morning posts. Move more clips to 6 PM - 8 PM.
+              </p>
+            </div>
 
-        {/* Line 3: Weakest platform */}
-        <div className="suggestion-item">
-          <span className="suggestion-bullet" />
-          <p className="suggestion-text">
-            Your <strong>{weakestPlatform}</strong> views are lagging. Try shorter hooks on {weakestPlatform}.
-          </p>
-        </div>
+            {/* Line 3: Weakest platform */}
+            <div className="suggestion-item">
+              <span className="suggestion-bullet" />
+              <p className="suggestion-text">
+                Your <strong>{weakestPlatform}</strong> views are lagging. Try shorter hooks on {weakestPlatform}.
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Apply to next week's plan button */}
@@ -60,6 +71,7 @@ export default function SuggestionsCard({
           type="button"
           onClick={handleApplyClick}
           className="btn-apply-insights"
+          disabled={savedConfirmation || bestHookType === '—'}
         >
           Apply to next week's plan
         </button>

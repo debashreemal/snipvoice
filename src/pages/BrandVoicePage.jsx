@@ -52,7 +52,7 @@ export default function BrandVoicePage() {
         });
       }
     });
-    return count > 0 ? Math.round(totalScore / count) : 88;
+    return count > 0 ? `${Math.round(totalScore / count)}%` : '—';
   }, [projects]);
 
   // Last 5 edits
@@ -158,7 +158,7 @@ export default function BrandVoicePage() {
               <span className="metric-lbl">Edits saved</span>
             </div>
             <div className="memory-metric-box">
-              <span className="metric-num">{avgVoiceMatch}%</span>
+              <span className="metric-num">{avgVoiceMatch}</span>
               <span className="metric-lbl">Avg voice match</span>
             </div>
           </div>

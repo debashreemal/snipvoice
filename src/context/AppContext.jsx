@@ -498,39 +498,28 @@ export function AppProvider({ children }) {
     projectName: slot.projectName || projects.find((p) => p.id === slot.projectId)?.title || 'Project'
   }));
 
-  // Performance Posts state derived from posted slots or default 6 mock posts
+  // Performance Posts state derived strictly from posted calendar slots
   const postedCalendarSlots = populatedScheduledSlots.filter((s) => s.isPosted);
-  const isUsingSampleData = postedCalendarSlots.length === 0;
+  const isUsingSampleData = false;
 
-  const performancePosts = isUsingSampleData
-    ? MOCK_PERFORMANCE_POSTS.map((p) => {
-        const proj = projects.find((pr) => pr.id === p.projectId);
-        return {
-          ...p,
-          projectName: p.projectName || proj?.title || 'Project',
-          views: postOverrides[p.id]?.views ?? p.views,
-          likes: postOverrides[p.id]?.likes ?? p.likes,
-          hookType: postOverrides[p.id]?.hookType ?? p.hookType
-        };
-      })
-    : postedCalendarSlots.map((s, idx) => {
-        const defaultHookTypes = ['Question', 'Bold claim', 'Story', 'Stat'];
-        const defaultViews = [84200, 41500, 28400, 32100, 92600, 24800];
-        const defaultLikes = [6200, 2800, 1950, 2100, 7100, 1600];
-        const proj = projects.find((pr) => pr.id === s.projectId);
-        return {
-          id: s.id,
-          projectId: s.projectId,
-          projectName: s.projectName || proj?.title || 'Project',
-          hookLine: s.hookLine,
-          platform: s.platform,
-          platformName: s.platformName,
-          hookType: postOverrides[s.id]?.hookType || defaultHookTypes[idx % defaultHookTypes.length],
-          postTime: s.time,
-          views: postOverrides[s.id]?.views ?? defaultViews[idx % defaultViews.length],
-          likes: postOverrides[s.id]?.likes ?? defaultLikes[idx % defaultLikes.length]
-        };
-      });
+  const performancePosts = postedCalendarSlots.map((s, idx) => {
+    const defaultHookTypes = ['Question', 'Bold claim', 'Story', 'Stat'];
+    const defaultViews = [1200, 3400, 850, 4200, 5600, 2100];
+    const defaultLikes = [95, 240, 60, 310, 430, 180];
+    const proj = projects.find((pr) => pr.id === s.projectId);
+    return {
+      id: s.id,
+      projectId: s.projectId,
+      projectName: s.projectName || proj?.title || 'Project',
+      hookLine: s.hookLine,
+      platform: s.platform,
+      platformName: s.platformName,
+      hookType: postOverrides[s.id]?.hookType || defaultHookTypes[idx % defaultHookTypes.length],
+      postTime: s.time,
+      views: postOverrides[s.id]?.views ?? defaultViews[idx % defaultViews.length],
+      likes: postOverrides[s.id]?.likes ?? defaultLikes[idx % defaultLikes.length]
+    };
+  });
 
   const updatePostMetric = (postId, field, value) => {
     setPostOverrides((prev) => ({

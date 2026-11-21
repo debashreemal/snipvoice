@@ -29,93 +29,104 @@ export default function PostsTable({ posts, isUsingSampleData, onUpdateMetric })
         </div>
       )}
 
-      <div className="posts-table-wrapper">
-        <table className="posts-table">
-          <thead>
-            <tr>
-              <th className="th-hook">Clip hook</th>
-              <th className="th-platform">Platform</th>
-              <th className="th-type">Hook type</th>
-              <th className="th-time">Post time</th>
-              <th className="th-metric">Views</th>
-              <th className="th-metric">Likes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {posts.map((post) => (
-              <tr key={post.id} className="posts-table-row">
-                {/* Clip hook with project tag */}
-                <td className="td-hook" title={post.hookLine}>
-                  {post.projectName && (
-                    <span className="table-project-tag" title={post.projectName}>
-                      {post.projectName}
-                    </span>
-                  )}
-                  <span className="hook-line-clamp">{post.hookLine}</span>
-                </td>
-
-                {/* Platform */}
-                <td className="td-platform">
-                  <div className="table-platform-badge">
-                    {getPlatformIcon(post.platform)}
-                    <span>{post.platformName}</span>
-                  </div>
-                </td>
-
-                {/* Hook Type Dropdown/Selector */}
-                <td className="td-type">
-                  <select
-                    className="hook-type-select"
-                    value={post.hookType}
-                    onChange={(e) => onUpdateMetric(post.id, 'hookType', e.target.value)}
-                  >
-                    {HOOK_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-
-                {/* Post Time */}
-                <td className="td-time">
-                  <span className="post-time-badge">{post.postTime}</span>
-                </td>
-
-                {/* Editable Views Number Input */}
-                <td className="td-metric">
-                  <input
-                    type="number"
-                    min="0"
-                    step="100"
-                    className="metric-number-input"
-                    value={post.views}
-                    onChange={(e) =>
-                      onUpdateMetric(post.id, 'views', Math.max(0, parseInt(e.target.value, 10) || 0))
-                    }
-                    title="Click to edit views"
-                  />
-                </td>
-
-                {/* Editable Likes Number Input */}
-                <td className="td-metric">
-                  <input
-                    type="number"
-                    min="0"
-                    step="10"
-                    className="metric-number-input"
-                    value={post.likes}
-                    onChange={(e) =>
-                      onUpdateMetric(post.id, 'likes', Math.max(0, parseInt(e.target.value, 10) || 0))
-                    }
-                    title="Click to edit likes"
-                  />
-                </td>
+      {posts.length === 0 ? (
+        <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <p style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
+            No published posts yet
+          </p>
+          <p style={{ margin: '8px 0 0', fontSize: '13px' }}>
+            Schedule clips on the Calendar and click &quot;Mark as posted&quot; to see real metrics here.
+          </p>
+        </div>
+      ) : (
+        <div className="posts-table-wrapper">
+          <table className="posts-table">
+            <thead>
+              <tr>
+                <th className="th-hook">Clip hook</th>
+                <th className="th-platform">Platform</th>
+                <th className="th-type">Hook type</th>
+                <th className="th-time">Post time</th>
+                <th className="th-metric">Views</th>
+                <th className="th-metric">Likes</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {posts.map((post) => (
+                <tr key={post.id} className="posts-table-row">
+                  {/* Clip hook with project tag */}
+                  <td className="td-hook" title={post.hookLine}>
+                    {post.projectName && (
+                      <span className="table-project-tag" title={post.projectName}>
+                        {post.projectName}
+                      </span>
+                    )}
+                    <span className="hook-line-clamp">{post.hookLine}</span>
+                  </td>
+
+                  {/* Platform */}
+                  <td className="td-platform">
+                    <div className="table-platform-badge">
+                      {getPlatformIcon(post.platform)}
+                      <span>{post.platformName}</span>
+                    </div>
+                  </td>
+
+                  {/* Hook Type Dropdown/Selector */}
+                  <td className="td-type">
+                    <select
+                      className="hook-type-select"
+                      value={post.hookType}
+                      onChange={(e) => onUpdateMetric(post.id, 'hookType', e.target.value)}
+                    >
+                      {HOOK_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  {/* Post Time */}
+                  <td className="td-time">
+                    <span className="post-time-badge">{post.postTime}</span>
+                  </td>
+
+                  {/* Editable Views Number Input */}
+                  <td className="td-metric">
+                    <input
+                      type="number"
+                      min="0"
+                      step="100"
+                      className="metric-number-input"
+                      value={post.views}
+                      onChange={(e) =>
+                        onUpdateMetric(post.id, 'views', Math.max(0, parseInt(e.target.value, 10) || 0))
+                      }
+                      title="Click to edit views"
+                    />
+                  </td>
+
+                  {/* Editable Likes Number Input */}
+                  <td className="td-metric">
+                    <input
+                      type="number"
+                      min="0"
+                      step="10"
+                      className="metric-number-input"
+                      value={post.likes}
+                      onChange={(e) =>
+                        onUpdateMetric(post.id, 'likes', Math.max(0, parseInt(e.target.value, 10) || 0))
+                      }
+                      title="Click to edit likes"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
