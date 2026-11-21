@@ -22,10 +22,11 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
     updateCaptionText,
     saveCaptionEdit,
     updateSingleCaption,
+    captionLanguage,
   } = useAppContext();
 
   const [copied, setCopied] = useState(false);
-  const [language, setLanguage] = useState('Hinglish');
+  const [language, setLanguage] = useState(captionLanguage || 'hinglish');
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -43,13 +44,13 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
     return <Twitter size={16} strokeWidth={2.2} />;
   };
 
-  // 1-Click Copy handler with visual feedback
+  // 1-Click Copy handler: copies text (edited if edited) to clipboard and shows "Copied" for 1.5s
   const handleCopy = async () => {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error('Failed to copy caption:', err);
     }
@@ -212,7 +213,7 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
             {copied ? (
               <>
                 <Check size={14} strokeWidth={2.4} />
-                <span>Copied!</span>
+                <span>Copied</span>
               </>
             ) : (
               <>

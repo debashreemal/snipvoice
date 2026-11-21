@@ -37,6 +37,21 @@ export function AppProvider({ children }) {
   // Overrides for performance metrics (views, likes, hookType)
   const [postOverrides, setPostOverrides] = useState({});
 
+  // Global caption language mode: 'hinglish' (default) or 'english'
+  const [captionLanguage, setCaptionLanguage] = useState('hinglish');
+
+  // Reset demo data in state
+  const resetDemoData = async () => {
+    await apiFetch('/api/reset', {
+      method: 'POST',
+      body: { confirm: 'RESET' },
+    });
+    setLearnedNotes([]);
+    setRecentlyAddedNotes([]);
+    setEdits([]);
+    setBrandVoice({ tone: 'Direct', wordsIUse: '', wordsIAvoid: '' });
+  };
+
   // Fetch persisted projects, brand voice, notes, and edits from Supabase on mount
   useEffect(() => {
     let isMounted = true;
@@ -676,6 +691,9 @@ export function AppProvider({ children }) {
         updateSlot,
         removeSlot,
         markSlotPosted,
+        captionLanguage,
+        setCaptionLanguage,
+        resetDemoData,
         // Global Performance
         performancePosts,
         isUsingSampleData,

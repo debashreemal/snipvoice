@@ -9,7 +9,8 @@ import {
   Plus,
   Calendar as CalendarIcon,
   List,
-  LayoutGrid
+  LayoutGrid,
+  Download
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import WeekGrid from '../components/WeekGrid';
@@ -115,6 +116,51 @@ export default function CalendarPage() {
     setIsAddModalOpen(true);
   };
 
+  // Export scheduled posts to CSV in the browser
+  const handleExportCsv = () => {
+    if (!scheduledSlots || scheduledSlots.length === 0) return;
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const clean = String(val).replace(/"/g, '""');
+      return `"${clean}"`;
+    };
+
+    const headers = ['project', 'clip hook', 'platform', 'date', 'time', 'status', 'caption text'];
+
+    const rows = scheduledSlots.map((slot) => {
+      const proj = projects.find((p) => p.id === slot.projectId);
+      const projTitle = slot.projectName || proj?.title || 'Project';
+      const dayObj = WEEK_DAYS.find((d) => d.key === slot.day);
+      const dateStr = dayObj ? `${dayObj.name} (${dayObj.date})` : slot.day;
+      const statusStr = slot.isPosted ? 'Posted' : 'Scheduled';
+
+      const capKey = `${slot.clipId}_${String(slot.platform || '').toLowerCase()}`;
+      const capText = proj?.captionsState?.[capKey]?.text || slot.hookLine || '';
+
+      return [
+        escapeCsv(projTitle),
+        escapeCsv(slot.hookLine),
+        escapeCsv(slot.platformName || slot.platform),
+        escapeCsv(dateStr),
+        escapeCsv(slot.time),
+        escapeCsv(statusStr),
+        escapeCsv(capText),
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'snipvoice-content-calendar.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="calendar-page">
       {/* Page Header */}
@@ -172,8 +218,18 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Right: Auto-plan & Week Navigation */}
+        {/* Right: Export CSV, Auto-plan & Week Navigation */}
         <div className="calendar-toolbar-right">
+          <button
+            type="button"
+            className="btn-export-csv"
+            onClick={handleExportCsv}
+            title="Download CSV of all scheduled posts"
+          >
+            <Download size={14} strokeWidth={2.4} />
+            <span>Export CSV</span>
+          </button>
+
           <button
             type="button"
             className="btn-auto-plan"

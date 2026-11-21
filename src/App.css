@@ -110,6 +110,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   padding: 16px 12px;
   height: 100%;
   overflow-y: auto;
@@ -121,6 +122,26 @@
   gap: 16px;
   width: 100%;
   align-items: center;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.btn-sidebar-settings {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.btn-sidebar-settings:hover {
+  background-color: var(--frame);
+  color: var(--text-on-dark);
 }
 
 .sidebar-item {
@@ -3885,6 +3906,302 @@
 .empty-memory-text {
   font-size: 13px;
   color: var(--text-muted);
+}
+
+/* Feature 1: Voice Match Trend Card */
+.voice-trend-card {
+  background-color: var(--sky-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.voice-trend-chart-box {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  padding: 18px 16px 12px 16px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.voice-trend-svg {
+  width: 100%;
+  height: 180px;
+  display: block;
+}
+
+.voice-trend-summary-text {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--sky-navy);
+  margin: 0;
+}
+
+/* Feature 5: Export CSV Button */
+.btn-export-csv {
+  background-color: var(--white);
+  color: var(--sky-navy);
+  border: none;
+  border-radius: var(--radius);
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-export-csv:hover {
+  background-color: var(--sky-clear);
+}
+
+/* Feature 6: Captions Language Toggle */
+.captions-lang-toggle-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.captions-lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--sky-card);
+  padding: 4px;
+  border-radius: var(--radius);
+  gap: 4px;
+}
+
+.lang-toggle-btn {
+  background-color: transparent;
+  color: var(--text-soft);
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.lang-toggle-btn.is-active {
+  background-color: var(--sky-bright);
+  color: var(--text);
+}
+
+.captions-lang-toggle-note {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+/* Feature 4: Settings Modal & Reset Demo */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(18, 19, 19, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.settings-modal {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  padding: 26px;
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text);
+}
+
+.btn-settings-close {
+  background-color: var(--bg-subtle);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-settings-close:hover {
+  background-color: var(--sky-clear);
+}
+
+.settings-success-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--approve);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.settings-error-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--reject);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-subtle);
+  padding: 20px;
+  border-radius: var(--radius);
+}
+
+.settings-section-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.settings-section-sub {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.btn-reset-demo {
+  background-color: var(--reject);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background-color 0.15s ease;
+}
+
+.btn-reset-demo:hover {
+  background-color: var(--reject-hover);
+}
+
+.settings-confirm-box {
+  background-color: var(--white);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-confirm-text {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.settings-confirm-input {
+  background-color: var(--bg-subtle);
+  border: none;
+  border-radius: var(--radius);
+  height: 38px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+}
+
+.settings-confirm-input:focus {
+  outline: 2px solid var(--reject);
+}
+
+.settings-confirm-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-confirm-reset {
+  background-color: var(--reject);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  height: 36px;
+  padding: 0 16px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-confirm-reset:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-confirm-reset:not(:disabled):hover {
+  background-color: var(--reject-hover);
+}
+
+.btn-cancel-reset {
+  background-color: var(--bg-subtle);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  height: 36px;
+  padding: 0 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-cancel-reset:hover {
+  background-color: var(--sky-clear);
 }
 
 .recent-edits-section {

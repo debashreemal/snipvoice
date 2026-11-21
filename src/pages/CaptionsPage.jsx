@@ -9,7 +9,7 @@ import { Calendar } from 'lucide-react';
 export default function CaptionsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getProject, projects, autoPlanWeek } = useAppContext();
+  const { getProject, projects, autoPlanWeek, captionLanguage, setCaptionLanguage } = useAppContext();
 
   const project = getProject(id) || projects[0];
   const clips = project?.clips || [];
@@ -30,6 +30,29 @@ export default function CaptionsPage() {
             <p className="workspace-section-subtitle">
               Edit any caption. SnipVoice learns your style and applies it to future drafts.
             </p>
+          </div>
+
+          {/* Hinglish | English language toggle */}
+          <div className="captions-lang-toggle-wrap">
+            <div className="captions-lang-toggle">
+              <button
+                type="button"
+                className={`lang-toggle-btn ${captionLanguage === 'hinglish' ? 'is-active' : ''}`}
+                onClick={() => setCaptionLanguage('hinglish')}
+              >
+                Hinglish
+              </button>
+              <button
+                type="button"
+                className={`lang-toggle-btn ${captionLanguage === 'english' ? 'is-active' : ''}`}
+                onClick={() => setCaptionLanguage('english')}
+              >
+                English
+              </button>
+            </div>
+            <span className="captions-lang-toggle-note">
+              Applies to new and regenerated captions.
+            </span>
           </div>
         </div>
 

@@ -10,7 +10,7 @@ export default function ClipCaptionSection({ clip, projectId }) {
   const { id: clipId, hookLine, timeRange, reason } = clip;
   const hookType = clip.hookType || clip.hook_type || 'Bold claim';
   const displayReason = reason || clip.reason || 'High-retention hook with a clear emotional takeaway tailored for multi-platform repurposing.';
-  const { getCaptionData, setClipCaptions } = useAppContext();
+  const { getCaptionData, setClipCaptions, captionLanguage } = useAppContext();
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -46,6 +46,7 @@ export default function ClipCaptionSection({ clip, projectId }) {
         body: {
           clipId,
           platforms: ['Instagram', 'LinkedIn', 'X'],
+          language: captionLanguage || 'hinglish',
         },
       });
 
