@@ -47,7 +47,16 @@ export function AppProvider({ children }) {
           setProjects(data.projects);
         }
         if (data.brandVoice) {
-          setBrandVoice((prev) => ({ ...prev, ...data.brandVoice }));
+          setBrandVoice((prev) => ({
+            ...prev,
+            tone: data.brandVoice.tone || prev.tone || 'Direct & conversational',
+            wordsIUse: (data.brandVoice.wordsIUse && data.brandVoice.wordsIUse.trim().length > 0)
+              ? data.brandVoice.wordsIUse
+              : (prev.wordsIUse || 'Jugaad, Hustle, Organic reach, Relatable, Bharat, Consistency, Ground reality'),
+            wordsIAvoid: (data.brandVoice.wordsIAvoid && data.brandVoice.wordsIAvoid.trim().length > 0)
+              ? data.brandVoice.wordsIAvoid
+              : (prev.wordsIAvoid || 'Viral hack, Synergy, Guru, Guaranteed, 10x growth, Passive income'),
+          }));
         }
         if (Array.isArray(data.learnedNotes) && data.learnedNotes.length > 0) {
           setLearnedNotes(data.learnedNotes);

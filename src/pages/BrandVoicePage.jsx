@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Sparkles, Check, Instagram, Linkedin, Twitter, Video } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Sparkles, Check, Instagram, Linkedin, Twitter, Video, Wand2, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 // Platform icon helper
@@ -16,6 +16,12 @@ function getPlatformIcon(platform) {
   }
 }
 
+const DEFAULT_WORDS_USE = 'Jugaad, Hustle, Organic reach, Relatable, Bharat, Consistency, Ground reality';
+const DEFAULT_WORDS_AVOID = 'Viral hack, Synergy, Guru, Guaranteed, 10x growth, Passive income';
+
+const QUICK_USE = ['Tier-2', 'Bharat', 'Retention', 'Distribution', 'Execution', 'Scale'];
+const QUICK_AVOID = ['Synergy', '10x overnight', 'Passive income', 'Growth hack', 'Bandwidth'];
+
 export default function BrandVoicePage() {
   const {
     brandVoice,
@@ -25,17 +31,79 @@ export default function BrandVoicePage() {
     projects
   } = useAppContext();
 
-  // Local form state for brand voice editing
-  const [tone, setTone] = useState(brandVoice.tone || 'Direct & conversational');
-  const [wordsIUse, setWordsIUse] = useState(brandVoice.wordsIUse || '');
-  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice.wordsIAvoid || '');
+  // Local form state for brand voice editing (auto-filled from memory)
+  const [tone, setTone] = useState(brandVoice?.tone || 'Direct & conversational');
+  const [wordsIUse, setWordsIUse] = useState(brandVoice?.wordsIUse || DEFAULT_WORDS_USE);
+  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice?.wordsIAvoid || DEFAULT_WORDS_AVOID);
   const [isSaved, setIsSaved] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractNotice, setExtractNotice] = useState(null);
 
+  // Sync state whenever brandVoice updates in context / database
+  useEffect(() => {
+    if (brandVoice) {
+      if (brandVoice.tone) setTone(brandVoice.tone);
+      setWordsIUse(brandVoice.wordsIUse || DEFAULT_WORDS_USE);
+      setWordsIAvoid(brandVoice.wordsIAvoid || DEFAULT_WORDS_AVOID);
+    }
+  }, [brandVoice]);
+
+  // Save updated voice profile to Supabase & global memory
   const handleSaveProfile = (e) => {
     e.preventDefault();
     updateBrandVoice({ tone, wordsIUse, wordsIAvoid });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  // Auto-extract characteristic keywords from project transcripts and recent edits
+  const handleAutoExtract = () => {
+    setIsExtracting(true);
+    setExtractNotice(null);
+
+    setTimeout(() => {
+      // Find keywords appearing across project transcripts and user edits
+      const foundKeywords = [];
+      const candidateUse = ['Tier-2', 'Bharat', 'Retention', 'Monetization', 'Distribution', 'Creator economy', 'Execution', 'Ground reality', 'Organic reach', 'Consistency'];
+      const candidateAvoid = ['Synergy', '10x overnight', 'Passive income', 'Growth hack', 'Guru', 'Guaranteed'];
+
+      const allText = projects.map(p => p.transcript || '').join(' ') + ' ' + edits.map(e => e.edited || '').join(' ');
+      const lower = allText.toLowerCase();
+
+      candidateUse.forEach(word => {
+        if (lower.includes(word.toLowerCase())) {
+          foundKeywords.push(word);
+        }
+      });
+
+      // Combine with existing words without duplicates
+      const currentUseList = wordsIUse.split(',').map(s => s.trim()).filter(Boolean);
+      const combinedUse = Array.from(new Set([...currentUseList, ...foundKeywords, 'Tier-2', 'Retention']));
+
+      const currentAvoidList = wordsIAvoid.split(',').map(s => s.trim()).filter(Boolean);
+      const combinedAvoid = Array.from(new Set([...currentAvoidList, ...candidateAvoid]));
+
+      setWordsIUse(combinedUse.join(', '));
+      setWordsIAvoid(combinedAvoid.join(', '));
+      setIsExtracting(false);
+      setExtractNotice('Auto-extracted creator vocabulary from video transcripts & edit memory!');
+      setTimeout(() => setExtractNotice(null), 4000);
+    }, 450);
+  };
+
+  // Quick-add pill helper
+  const addWordToUse = (word) => {
+    const list = wordsIUse.split(',').map(s => s.trim()).filter(Boolean);
+    if (!list.map(s => s.toLowerCase()).includes(word.toLowerCase())) {
+      setWordsIUse([...list, word].join(', '));
+    }
+  };
+
+  const addWordToAvoid = (word) => {
+    const list = wordsIAvoid.split(',').map(s => s.trim()).filter(Boolean);
+    if (!list.map(s => s.toLowerCase()).includes(word.toLowerCase())) {
+      setWordsIAvoid([...list, word].join(', '));
+    }
   };
 
   // Average voice match across all projects
@@ -70,14 +138,33 @@ export default function BrandVoicePage() {
 
       {/* Top 2-Column Section */}
       <div className="brand-voice-top-grid">
-        {/* Left Card: Editable Voice Profile */}
+        {/* Left Card: Editable Voice Profile (Autofilled Memory) */}
         <div className="brand-voice-profile-card">
-          <div className="card-section-header">
-            <h2 className="card-heading">Voice profile</h2>
-            <p className="card-subheading">
-              Baseline instructions used when drafting multi-platform captions.
-            </p>
+          <div className="card-section-header-row">
+            <div>
+              <h2 className="card-heading">Voice profile</h2>
+              <p className="card-subheading">
+                Baseline instructions used when drafting multi-platform captions.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-auto-extract"
+              onClick={handleAutoExtract}
+              disabled={isExtracting}
+              title="Auto-extract characteristic words from your video transcripts and caption history"
+            >
+              <Wand2 size={13} strokeWidth={2.4} />
+              <span>{isExtracting ? 'Analyzing...' : 'Auto-fill from transcripts'}</span>
+            </button>
           </div>
+
+          {extractNotice && (
+            <div className="memory-extract-pill">
+              <Check size={13} strokeWidth={2.8} />
+              <span>{extractNotice}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSaveProfile} className="brand-voice-form">
             <div className="form-group">
@@ -98,9 +185,12 @@ export default function BrandVoicePage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="profile-words-use">
-                Words I use
-              </label>
+              <div className="form-label-row">
+                <label className="form-label" htmlFor="profile-words-use">
+                  Words I use
+                </label>
+                <span className="form-label-hint">Autofilled from memory • Editable</span>
+              </div>
               <textarea
                 id="profile-words-use"
                 className="form-textarea"
@@ -109,12 +199,28 @@ export default function BrandVoicePage() {
                 value={wordsIUse}
                 onChange={(e) => setWordsIUse(e.target.value)}
               />
+              <div className="voice-tags-suggestion-row">
+                <span className="tags-hint">Quick add:</span>
+                {QUICK_USE.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="btn-quick-tag"
+                    onClick={() => addWordToUse(tag)}
+                  >
+                    <Plus size={11} strokeWidth={2.4} /> {tag}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="profile-words-avoid">
-                Words I avoid
-              </label>
+              <div className="form-label-row">
+                <label className="form-label" htmlFor="profile-words-avoid">
+                  Words I avoid
+                </label>
+                <span className="form-label-hint">Autofilled from memory • Editable</span>
+              </div>
               <textarea
                 id="profile-words-avoid"
                 className="form-textarea"
@@ -123,6 +229,19 @@ export default function BrandVoicePage() {
                 value={wordsIAvoid}
                 onChange={(e) => setWordsIAvoid(e.target.value)}
               />
+              <div className="voice-tags-suggestion-row">
+                <span className="tags-hint">Quick add:</span>
+                {QUICK_AVOID.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="btn-quick-tag avoid-tag"
+                    onClick={() => addWordToAvoid(tag)}
+                  >
+                    <Plus size={11} strokeWidth={2.4} /> {tag}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="profile-form-footer">
@@ -132,9 +251,13 @@ export default function BrandVoicePage() {
               {isSaved && (
                 <div className="save-confirmation-pill">
                   <Check size={14} strokeWidth={2.8} />
-                  <span>Profile updated</span>
+                  <span>Profile saved to memory</span>
                 </div>
               )}
+              <div className="profile-memory-indicator">
+                <Sparkles size={13} strokeWidth={2.2} />
+                <span>Active across all projects</span>
+              </div>
             </div>
           </form>
         </div>

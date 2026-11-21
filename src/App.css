@@ -3586,6 +3586,98 @@
   margin-bottom: 4px;
 }
 
+.card-section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-auto-extract {
+  background-color: var(--white);
+  color: var(--sky-navy);
+  border: none;
+  border-radius: var(--radius);
+  height: 32px;
+  padding: 0 12px;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-auto-extract:hover:not(:disabled) {
+  background-color: var(--sky-clear);
+}
+
+.memory-extract-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--approve);
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.form-label-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.voice-tags-suggestion-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.tags-hint {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.btn-quick-tag {
+  background-color: var(--white);
+  color: var(--sky-navy);
+  border: none;
+  border-radius: 12px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.btn-quick-tag:hover {
+  background-color: var(--sky-clear);
+}
+
+.btn-quick-tag.avoid-tag {
+  background-color: var(--bg-subtle);
+  color: var(--text-soft);
+}
+
 .card-heading {
   font-size: 18px;
   font-weight: 800;
@@ -3606,6 +3698,17 @@
   align-items: center;
   gap: 14px;
   margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.profile-memory-indicator {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sky-navy);
 }
 
 .save-confirmation-pill {

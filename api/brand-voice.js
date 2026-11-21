@@ -10,6 +10,47 @@ export default async function handler(req, res) {
     return res?.status ? res.status(500).json(err) : new Response(JSON.stringify(err), { status: 500 });
   }
 
+  const DEFAULT_USE = 'Jugaad, Hustle, Organic reach, Relatable, Bharat, Consistency, Ground reality';
+  const DEFAULT_AVOID = 'Viral hack, Synergy, Guru, Guaranteed, 10x growth, Passive income';
+
+  if (req.method === 'GET') {
+    try {
+      const { data: row } = await sb
+        .from('brand_voice')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      const payload = {
+        tone: row?.tone || 'Direct & conversational',
+        wordsIUse: row?.use_words && row.use_words.trim().length > 0 ? row.use_words : DEFAULT_USE,
+        wordsIAvoid: row?.avoid_words && row.avoid_words.trim().length > 0 ? row.avoid_words : DEFAULT_AVOID,
+      };
+
+      if (res && typeof res.status === 'function') {
+        return res.status(200).json(payload);
+      }
+      return new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err) {
+      console.error('Error fetching brand voice:', err.message);
+      const fallback = {
+        tone: 'Direct & conversational',
+        wordsIUse: DEFAULT_USE,
+        wordsIAvoid: DEFAULT_AVOID,
+      };
+      if (res && typeof res.status === 'function') {
+        return res.status(200).json(fallback);
+      }
+      return new Response(JSON.stringify(fallback), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   if (req.method === 'POST') {
     const { tone, wordsIUse, wordsIAvoid } = req.body || {};
 

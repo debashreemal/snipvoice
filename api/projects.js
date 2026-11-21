@@ -140,14 +140,21 @@ export default async function handler(req, res) {
       };
     });
 
-    // Format Brand Voice
+    // Format Brand Voice with sensible Indian creator defaults
+    const DEFAULT_USE = 'Jugaad, Hustle, Organic reach, Relatable, Bharat, Consistency, Ground reality';
+    const DEFAULT_AVOID = 'Viral hack, Synergy, Guru, Guaranteed, 10x growth, Passive income';
+
     const brandVoice = brandVoiceRow
       ? {
           tone: brandVoiceRow.tone || 'Direct & conversational',
-          wordsIUse: brandVoiceRow.use_words || '',
-          wordsIAvoid: brandVoiceRow.avoid_words || '',
+          wordsIUse: brandVoiceRow.use_words && brandVoiceRow.use_words.trim().length > 0 ? brandVoiceRow.use_words : DEFAULT_USE,
+          wordsIAvoid: brandVoiceRow.avoid_words && brandVoiceRow.avoid_words.trim().length > 0 ? brandVoiceRow.avoid_words : DEFAULT_AVOID,
         }
-      : null;
+      : {
+          tone: 'Direct & conversational',
+          wordsIUse: DEFAULT_USE,
+          wordsIAvoid: DEFAULT_AVOID,
+        };
 
     // Format Learned Notes
     const learnedNotes = (notesRows || []).map((n) => n.note).filter(Boolean);

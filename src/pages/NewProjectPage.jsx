@@ -29,13 +29,24 @@ export default function NewProjectPage() {
   const [projectTitle, setProjectTitle] = useState('');
   const [activeTab, setActiveTab] = useState('transcript'); // 'transcript' | 'file'
 
+  const DEFAULT_USE = 'Jugaad, Hustle, Organic reach, Relatable, Bharat, Consistency';
+  const DEFAULT_AVOID = 'Viral hack, Synergy, Guru, Guaranteed, 10x growth';
+
   // Transcript tab state
   const [transcript, setTranscript] = useState('');
   const [tone, setTone] = useState(brandVoice.tone || 'Direct');
-  const [wordsIUse, setWordsIUse] = useState(brandVoice.wordsIUse || '');
-  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice.wordsIAvoid || '');
+  const [wordsIUse, setWordsIUse] = useState(brandVoice.wordsIUse || DEFAULT_USE);
+  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice.wordsIAvoid || DEFAULT_AVOID);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
+
+  useEffect(() => {
+    if (brandVoice) {
+      if (brandVoice.tone) setTone(brandVoice.tone);
+      if (brandVoice.wordsIUse) setWordsIUse(brandVoice.wordsIUse);
+      if (brandVoice.wordsIAvoid) setWordsIAvoid(brandVoice.wordsIAvoid);
+    }
+  }, [brandVoice]);
 
   // Upload file tab state
   const [selectedFile, setSelectedFile] = useState(null);
