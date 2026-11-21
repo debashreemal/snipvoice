@@ -45,8 +45,9 @@ export default function ChatInput({
 
   // Called when speech recognition automatically finishes
   const handleSpeechEndAndSend = (finalText) => {
-    if (finalText && !isWaiting) {
-      onSendMessage(finalText);
+    const textToSend = (finalText || '').trim() || inputText.trim();
+    if (textToSend && !isWaiting) {
+      onSendMessage(textToSend);
       setInputText('');
     }
   };

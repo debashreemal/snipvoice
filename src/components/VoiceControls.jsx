@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Square, AlertCircle } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
 
 const SpeechRecognition =
   typeof window !== 'undefined'
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
 
-// Voice input controls using browser built-in Web Speech API
+// Voice input controls using browser built-in Web Speech API with explicit permission handling
 export default function VoiceControls({
   speechLang,
   onLangChange,
@@ -20,6 +20,7 @@ export default function VoiceControls({
 }) {
   const recognitionRef = useRef(null);
   const transcriptBufferRef = useRef('');
+  const silenceTimerRef = useRef(null);
 
   // If SpeechRecognition is not supported by the browser, render nothing
   if (!SpeechRecognition) {
@@ -29,6 +30,7 @@ export default function VoiceControls({
   // Cleanup speech recognition on unmount
   useEffect(() => {
     return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -37,16 +39,63 @@ export default function VoiceControls({
     };
   }, []);
 
-  const startListening = () => {
+  const stopListening = (sendIfPresent = true) => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+
+    const finalRecorded = transcriptBufferRef.current.trim();
+    if (sendIfPresent && finalRecorded) {
+      onSpeechEndAndSend(finalRecorded);
+    }
+  };
+
+  const startListening = async () => {
     if (disabled) return;
     setMicError(null);
     transcriptBufferRef.current = '';
 
+    // 1. Explicitly prompt / verify microphone permission so browser doesn't block silently
+    if (navigator?.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Immediately stop temporary mic tracks so SpeechRecognition can take over the device
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (err) {
+        console.warn('Microphone permission check failed:', err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setMicError(
+            'Microphone is blocked. Allow it in your browser settings, or type your question.'
+          );
+        } else {
+          setMicError('No microphone found. Please connect a microphone or type your question.');
+        }
+        setIsListening(false);
+        return;
+      }
+    }
+
+    // 2. Abort any previous recognition instance
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch {}
+      recognitionRef.current = null;
+    }
+
     try {
       const recognition = new SpeechRecognition();
-      recognition.lang = speechLang;
+      recognition.lang = speechLang || 'hi-IN';
       recognition.interimResults = true;
-      recognition.continuous = false;
+      recognition.continuous = true; // Stay active while user speaks, don't drop on 1-second pause
       recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
@@ -54,46 +103,53 @@ export default function VoiceControls({
       };
 
       recognition.onresult = (event) => {
-        let transcript = '';
+        let fullTranscript = '';
         for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+          fullTranscript += event.results[i][0].transcript;
         }
-        transcriptBufferRef.current = transcript;
-        onLiveTranscript(transcript);
+
+        transcriptBufferRef.current = fullTranscript;
+        onLiveTranscript(fullTranscript);
+
+        // Auto-send debounce: when user pauses for 1.8 seconds after speaking, automatically send!
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => {
+          stopListening(true);
+        }, 1800);
       };
 
       recognition.onerror = (event) => {
+        console.warn('Speech recognition event error:', event.error);
+        if (event.error === 'no-speech') {
+          // Do not abort if user is still preparing to speak
+          return;
+        }
+
         setIsListening(false);
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           setMicError(
             'Microphone is blocked. Allow it in your browser settings, or type your question.'
           );
+        } else if (event.error === 'audio-capture') {
+          setMicError('No microphone found. Please connect a microphone or type your question.');
+        } else if (event.error === 'network') {
+          setMicError('Speech recognition service network error. Please type your question.');
         }
       };
 
       recognition.onend = () => {
+        // Recognition completed or stopped
         setIsListening(false);
-        const finalRecorded = transcriptBufferRef.current.trim();
-        if (finalRecorded) {
-          onSpeechEndAndSend(finalRecorded);
-        }
       };
 
       recognitionRef.current = recognition;
+      setIsListening(true);
       recognition.start();
     } catch (err) {
-      console.warn('Speech recognition error:', err);
+      console.error('Failed to start SpeechRecognition:', err);
       setIsListening(false);
+      setMicError('Could not initialize speech recognition. Please type your question.');
     }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {}
-    }
-    setIsListening(false);
   };
 
   return (
@@ -124,8 +180,8 @@ export default function VoiceControls({
         <button
           type="button"
           className="btn-mic is-listening"
-          onClick={stopListening}
-          title="Stop listening"
+          onClick={() => stopListening(true)}
+          title="Stop listening and send"
         >
           <Square size={14} strokeWidth={2.4} />
           <span>Stop listening</span>
