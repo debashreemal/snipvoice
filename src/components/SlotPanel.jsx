@@ -81,12 +81,20 @@ export default function SlotPanel({ slot, onClose, onUpdate, onRemove, onMarkPos
 
         {/* Full Hook Line */}
         <div className="slot-panel-hook">
-          "{slot.hookLine}"
+          &ldquo;{slot.hookLine}&rdquo;
         </div>
+
+        {/* Why this clip was selected */}
+        {slot.clipReason && (
+          <div className="slot-panel-reason-box" style={{ marginBottom: '10px' }}>
+            <span className="slot-panel-reason-label">WHY THIS CLIP WAS PICKED</span>
+            <p className="slot-panel-reason-text">{slot.clipReason}</p>
+          </div>
+        )}
 
         {/* Why this slot rationale */}
         <div className="slot-panel-reason-box">
-          <span className="slot-panel-reason-label">WHY THIS SLOT</span>
+          <span className="slot-panel-reason-label">WHY THIS TIME SLOT</span>
           <p className="slot-panel-reason-text">{slot.reason}</p>
         </div>
 

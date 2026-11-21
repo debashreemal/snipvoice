@@ -7,7 +7,9 @@ import { apiFetch } from '../lib/api';
 
 // Section grouping 3 platform caption cards for an approved clip within a project
 export default function ClipCaptionSection({ clip, projectId }) {
-  const { id: clipId, hookLine, timeRange } = clip;
+  const { id: clipId, hookLine, timeRange, reason } = clip;
+  const hookType = clip.hookType || clip.hook_type || 'Bold claim';
+  const displayReason = reason || clip.reason || 'High-retention hook with a clear emotional takeaway tailored for multi-platform repurposing.';
   const { getCaptionData, setClipCaptions } = useAppContext();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -69,14 +71,25 @@ export default function ClipCaptionSection({ clip, projectId }) {
 
   return (
     <section className="clip-caption-section">
-      {/* Section Header: Hook Line and Time Range */}
+      {/* Section Header: Hook Line, Hook Type Pill, Time Range, and Selection Reason */}
       <div className="clip-caption-header">
-        <h3 className="clip-caption-hook">
-          "{hookLine}"
-        </h3>
-        <span className="clip-caption-time">
-          {timeRange}
-        </span>
+        <div className="clip-caption-header-top">
+          <div className="clip-caption-hook-group">
+            <h3 className="clip-caption-hook">
+              &ldquo;{hookLine}&rdquo;
+            </h3>
+            <span className="clip-hook-type-pill">{hookType}</span>
+          </div>
+          <span className="clip-caption-time">
+            {timeRange}
+          </span>
+        </div>
+
+        {/* AI Selection Rationale Callout */}
+        <div className="caption-section-reason-box">
+          <span className="caption-section-reason-label">WHY THIS CLIP WAS CHOSEN</span>
+          <p className="caption-section-reason-text">{displayReason}</p>
+        </div>
       </div>
 
       {/* Loading State for this Clip's Section */}
