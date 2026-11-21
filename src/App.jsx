@@ -4,7 +4,6 @@ import { AppProvider } from './context/AppContext';
 import Sidebar from './components/Sidebar';
 import LearnedPanel from './components/LearnedPanel';
 import MiniCalendar from './components/MiniCalendar';
-import TopbarBreadcrumb from './components/TopbarBreadcrumb';
 import ProjectsPage from './pages/ProjectsPage';
 import NewProjectPage from './pages/NewProjectPage';
 import ClipsPage from './pages/ClipsPage';
@@ -19,14 +18,13 @@ export default function App() {
   return (
     <AppProvider>
       <div className="app-wrapper">
-        {/* Slim Top Bar with Breadcrumb */}
+        {/* Slim Top Bar */}
         <header className="app-topbar">
           <div className="topbar-brand-group">
             <Link to="/projects" className="topbar-brand">
               <span className="brand-snip">Snip</span>
               <span className="brand-voice">Voice</span>
             </Link>
-            <TopbarBreadcrumb />
           </div>
           <span className="topbar-tagline">
             One video. A week of content. In your voice.
