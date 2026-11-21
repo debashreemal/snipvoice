@@ -1,6 +1,7 @@
 /**
  * Speech-to-Text transcription endpoint using Gnani.ai Prisma STT v3.
  * Accepts audio or video files and returns a transcript formatted with timestamps.
+ * Includes automatic Groq Whisper fallback for video containers (.mp4/.mov) or format exceptions.
  */
 
 // Helper to chunk sentences into timestamped lines [MM:SS] so pick-clips can extract time ranges
@@ -41,10 +42,12 @@ export default async function handler(req, res) {
   }
 
   const gnaniApiKey = process.env.GNANI_API_KEY;
-  if (!gnaniApiKey || !gnaniApiKey.trim()) {
-    console.error('GNANI_API_KEY is not configured in environment variables');
+  const groqApiKey = process.env.GROQ_API_KEY;
+
+  if (!gnaniApiKey && !groqApiKey) {
+    console.error('Neither GNANI_API_KEY nor GROQ_API_KEY is configured in environment variables');
     const err = {
-      error: 'Gnani AI API key is not configured. Please add GNANI_API_KEY to your .env file.',
+      error: 'Transcription API key is not configured. Please add GNANI_API_KEY or GROQ_API_KEY to your .env file.',
     };
     return res?.status ? res.status(500).json(err) : new Response(JSON.stringify(err), { status: 500 });
   }
@@ -77,38 +80,77 @@ export default async function handler(req, res) {
       languageCode = 'indic-auto';
     }
 
-    // Prepare FormData payload for Gnani Prisma STT v3
-    const gnaniFormData = new FormData();
-    gnaniFormData.append('audio_file', file, file.name || 'audio.mp3');
-    gnaniFormData.append('model', 'prisma-v3.0');
-    gnaniFormData.append('language_code', languageCode);
-    gnaniFormData.append('format', 'transcribe');
+    const fileName = (file.name || 'audio.mp3').toLowerCase();
+    // Gnani Prisma v3 REST API natively supports audio formats: mp3, wav, m4a, aac, flac, ogg
+    const isGnaniNativeAudio = /\.(mp3|wav|m4a|aac|flac|ogg)$/i.test(fileName);
 
-    // Call Gnani.ai STT API
-    const gnaniRes = await fetch('https://api.vachana.ai/stt/v3', {
-      method: 'POST',
-      headers: {
-        'X-API-Key-ID': gnaniApiKey.trim(),
-      },
-      body: gnaniFormData,
-    });
+    let rawTranscript = '';
+    let detectedLanguage = languageCode;
+    let providerUsed = 'Gnani AI Prisma v3.0';
 
-    if (!gnaniRes.ok) {
-      const errorText = await gnaniRes.text();
-      console.error('Gnani API error:', gnaniRes.status, errorText);
-      const err = {
-        error: `Gnani AI transcription failed (${gnaniRes.status}). Please check your audio file and try again.`,
-      };
-      return res?.status
-        ? res.status(gnaniRes.status || 500).json(err)
-        : new Response(JSON.stringify(err), { status: gnaniRes.status || 500 });
+    // 1. Try Gnani AI if API key is present and format is supported audio
+    if (gnaniApiKey && isGnaniNativeAudio) {
+      try {
+        const gnaniFormData = new FormData();
+        gnaniFormData.append('audio_file', file, file.name || 'audio.mp3');
+        gnaniFormData.append('model', 'prisma-v3.0');
+        gnaniFormData.append('language_code', languageCode);
+        gnaniFormData.append('format', 'transcribe');
+
+        const gnaniRes = await fetch('https://api.vachana.ai/stt/v3', {
+          method: 'POST',
+          headers: {
+            'X-API-Key-ID': gnaniApiKey.trim(),
+          },
+          body: gnaniFormData,
+        });
+
+        if (gnaniRes.ok) {
+          const gnaniData = await gnaniRes.json();
+          rawTranscript = gnaniData.transcript || '';
+          detectedLanguage = gnaniData.detected_language_code || languageCode;
+        } else {
+          const errorText = await gnaniRes.text();
+          console.warn('Gnani STT non-200 response (' + gnaniRes.status + '), attempting fallback:', errorText);
+        }
+      } catch (gnaniErr) {
+        console.warn('Gnani STT network exception, attempting fallback:', gnaniErr.message);
+      }
     }
 
-    const gnaniData = await gnaniRes.json();
-    const rawTranscript = gnaniData.transcript || '';
+    // 2. If Gnani was skipped (video container .mp4/.webm) or returned an error, fallback to Groq Whisper
+    if (!rawTranscript && groqApiKey) {
+      try {
+        const groqFormData = new FormData();
+        groqFormData.append('file', file, file.name || 'audio.mp4');
+        groqFormData.append('model', 'whisper-large-v3');
 
-    if (!rawTranscript.trim()) {
-      const err = { error: 'Gnani AI could not detect any speech in the uploaded audio.' };
+        const groqRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${groqApiKey.trim()}`,
+          },
+          body: groqFormData,
+        });
+
+        if (groqRes.ok) {
+          const groqData = await groqRes.json();
+          rawTranscript = groqData.text || '';
+          providerUsed = 'Groq Whisper v3 (Media Adapter)';
+        } else {
+          const groqErrText = await groqRes.text();
+          console.error('Groq Whisper transcription error (' + groqRes.status + '):', groqErrText);
+        }
+      } catch (groqErr) {
+        console.error('Groq Whisper exception:', groqErr.message);
+      }
+    }
+
+    if (!rawTranscript || !rawTranscript.trim()) {
+      const err = {
+        error:
+          'Could not transcribe audio. Please ensure the audio file contains clear audible speech and try again.',
+      };
       return res?.status ? res.status(400).json(err) : new Response(JSON.stringify(err), { status: 400 });
     }
 
@@ -118,7 +160,8 @@ export default async function handler(req, res) {
       success: true,
       raw_transcript: rawTranscript,
       transcript: formattedTranscript,
-      detected_language: gnaniData.detected_language_code || languageCode,
+      detected_language: detectedLanguage,
+      provider: providerUsed,
     };
 
     if (res && typeof res.status === 'function') {

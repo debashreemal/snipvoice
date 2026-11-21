@@ -17,7 +17,7 @@ import { SAMPLE_TRANSCRIPT } from '../data/mock';
 import { useAppContext } from '../context/AppContext';
 import { apiFetch } from '../lib/api';
 
-const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.webm'];
+const ALLOWED_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.mp4', '.mov', '.webm', '.aac', '.ogg', '.flac'];
 
 // New Project Page: Ingest transcript or upload media file
 export default function NewProjectPage() {
@@ -130,14 +130,14 @@ export default function NewProjectPage() {
       });
 
       if (!transData || !transData.transcript) {
-        throw new Error('No transcript received from Gnani AI. Please try again.');
+        throw new Error('No transcript received from speech engine. Please try again.');
       }
 
       setUploadStepText('Transcribed! Finding best moments with AI...');
       await executePickClips(titleToUse, transData.transcript);
     } catch (err) {
-      console.error('Gnani transcription error:', err);
-      setFileError(err.message || 'Could not transcribe file with Gnani AI. Check your file and try again.');
+      console.error('Transcription error:', err);
+      setFileError(err.message || 'Could not transcribe file. Check your file and try again.');
     } finally {
       setIsUploading(false);
     }
@@ -430,7 +430,7 @@ export default function NewProjectPage() {
             <input
               type="file"
               ref={fileInputRef}
-              accept=".mp3,.wav,.m4a,.mp4,.mov,.webm"
+              accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.mov,.webm"
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
@@ -464,7 +464,7 @@ export default function NewProjectPage() {
                   Choose file
                 </button>
                 <span className="dropzone-hint">
-                  Supports MP3, WAV, M4A, MP4, MOV, WEBM (up to 200 MB)
+                  Supports MP3, WAV, M4A, AAC, OGG, MP4, WEBM (up to 200 MB)
                 </span>
               </div>
             ) : (
