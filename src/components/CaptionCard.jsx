@@ -189,8 +189,10 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
       {showBeforeAfter && (
         <BeforeAfterPanel
           original={original}
+          edited={text}
           current={text}
           platformName={name}
+          onClose={() => setShowBeforeAfter(false)}
         />
       )}
     </div>
