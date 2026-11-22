@@ -443,6 +443,15 @@ export function AppProvider({ children }) {
       }
     });
 
+    // Fallback: If text was edited but none of the specific rules triggered
+    if (detectedNotes.length === 0 && edited && original && edited.trim() !== original.trim()) {
+      if (edited.length < original.length) {
+        detectedNotes.push('Prefers concise phrasing');
+      } else {
+        detectedNotes.push('Refined personal voice');
+      }
+    }
+
     // Update global learned notes (shared across all projects)
     setLearnedNotes((prev) => {
       const brandNew = detectedNotes.filter((note) => !prev.includes(note));

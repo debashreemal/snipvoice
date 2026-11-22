@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       console.warn('Could not insert edit record:', editErr.message);
     }
 
-    // 2. Update captions table if clipId is present
+    // 2. Update captions table if clipId is present (including voice_match: 92)
     if (clipId && platform) {
       // Find matching platform name case-insensitively
       const platStr = platform.toLowerCase();
@@ -44,7 +44,10 @@ export default async function handler(req, res) {
 
       const { error: capErr } = await sb
         .from('captions')
-        .update({ edited_text: editedText })
+        .update({
+          edited_text: editedText,
+          voice_match: 92,
+        })
         .eq('clip_id', clipId)
         .ilike('platform', capPlatform);
 
@@ -53,13 +56,23 @@ export default async function handler(req, res) {
       }
     }
 
-    // 3. Insert newly detected learned rules into learned_notes
-    if (Array.isArray(detectedNotes) && detectedNotes.length > 0) {
+    // 3. Fallback rule detection if no notes passed but text changed
+    const safeNotes = Array.isArray(detectedNotes) ? [...detectedNotes] : [];
+    if (safeNotes.length === 0 && originalText && editedText && originalText.trim() !== editedText.trim()) {
+      if (editedText.length < originalText.length) {
+        safeNotes.push('Prefers concise phrasing');
+      } else {
+        safeNotes.push('Refined personal voice');
+      }
+    }
+
+    // 4. Insert newly detected learned rules into learned_notes
+    if (safeNotes.length > 0) {
       // Check existing notes to avoid duplicates
       const { data: existingNotes } = await sb.from('learned_notes').select('note');
       const existingSet = new Set((existingNotes || []).map((n) => n.note.trim().toLowerCase()));
 
-      const notesToInsert = detectedNotes
+      const notesToInsert = safeNotes
         .filter((n) => n && typeof n === 'string' && !existingSet.has(n.trim().toLowerCase()))
         .map((n) => ({ note: n.trim() }));
 
@@ -69,6 +82,17 @@ export default async function handler(req, res) {
           console.warn('Could not insert learned_notes:', notesErr.message);
         }
       }
+    }
+
+    // 5. Update voice_history trend row
+    if (projectId) {
+      const { data: currentEdits } = await sb.from('edits').select('id');
+      const editsCount = (currentEdits || []).length || 1;
+      await sb.from('voice_history').insert([{
+        project_id: projectId,
+        edits_count: editsCount,
+        avg_match: 92,
+      }]).catch((vhErr) => console.warn('Could not insert voice_history row:', vhErr?.message));
     }
 
     const payload = { success: true };

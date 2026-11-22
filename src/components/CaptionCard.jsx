@@ -26,6 +26,7 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
   } = useAppContext();
 
   const [copied, setCopied] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [language, setLanguage] = useState(captionLanguage || 'hinglish');
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);

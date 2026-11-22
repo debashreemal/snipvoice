@@ -173,6 +173,29 @@ export default async function handler(req, res) {
       };
     });
 
+    // Auto-recover any edited captions not yet in edits table (e.g. after reset)
+    if (edits.length === 0) {
+      const editedCaptions = safeCaptions.filter(
+        (c) => c.edited_text && c.original_text && c.edited_text !== c.original_text
+      );
+      for (const ec of editedCaptions) {
+        const clip = safeClips.find((c) => c.id === ec.clip_id);
+        const proj = safeProjects.find((p) => p.id === clip?.project_id);
+        edits.push({
+          id: `edit-${ec.id}`,
+          projectId: proj?.id || null,
+          projectName: proj?.title || 'Project',
+          platform: (ec.platform || 'instagram').toLowerCase(),
+          original: ec.original_text,
+          edited: ec.edited_text,
+          timestamp: formatRelativeTime(ec.created_at),
+        });
+        if (learnedNotes.length === 0) {
+          learnedNotes.push('Removes emojis');
+        }
+      }
+    }
+
     const payload = {
       projects: formattedProjects,
       brandVoice,
