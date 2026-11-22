@@ -3506,13 +3506,12 @@
   border: none;
   background-color: var(--day-column);
   color: var(--text-soft);
-  font-size: 11px;
-  font-weight: 700;
+  width: 26px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: var(--radius);
+  justify-content: center;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }

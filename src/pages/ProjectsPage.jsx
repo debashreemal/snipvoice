@@ -191,10 +191,9 @@ export default function ProjectsPage() {
                       type="button"
                       className="btn-rename-project"
                       onClick={() => handleStartRename(project)}
-                      title="Rename project title"
+                      title="Rename project"
                     >
-                      <Pencil size={11} strokeWidth={2.4} />
-                      <span>Rename</span>
+                      <Pencil size={13} strokeWidth={2.4} />
                     </button>
                   )}
                 </div>
