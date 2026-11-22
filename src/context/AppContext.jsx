@@ -118,6 +118,23 @@ export function AppProvider({ children }) {
     return projects.find((p) => p.id === projectId) || projects[0];
   };
 
+  // Rename a project title and persist to Supabase
+  const renameProject = async (projectId, newTitle) => {
+    if (!newTitle || !newTitle.trim()) return;
+    const trimmed = newTitle.trim();
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, title: trimmed } : p))
+    );
+    try {
+      await apiFetch('/api/update-project', {
+        method: 'POST',
+        body: { id: projectId, title: trimmed }
+      });
+    } catch (err) {
+      console.warn('Could not persist project rename to Supabase:', err);
+    }
+  };
+
   // Create a new project (client fallback)
   const createProject = ({ title, transcript }) => {
     const newId = `proj-${Date.now()}`;
@@ -782,6 +799,7 @@ export function AppProvider({ children }) {
         getProject,
         createProject,
         addRealProject,
+        renameProject,
         // Clips within projects
         handleApprove,
         handleReject,

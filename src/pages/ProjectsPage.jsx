@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, FolderKanban, Check, ArrowRight } from 'lucide-react';
+import { Plus, Search, FolderKanban, Check, ArrowRight, Pencil, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import StatCard from '../components/StatCard';
 
@@ -68,8 +68,27 @@ function formatMetric(num) {
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
-  const { projects, scheduledSlots, performancePosts } = useAppContext();
+  const { projects, scheduledSlots, performancePosts, renameProject } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
+  const handleStartRename = (project) => {
+    setEditingProjectId(project.id);
+    setEditingTitle(project.title);
+  };
+
+  const handleSaveRename = (projectId) => {
+    if (editingTitle && editingTitle.trim()) {
+      renameProject(projectId, editingTitle.trim());
+    }
+    setEditingProjectId(null);
+  };
+
+  const handleCancelRename = () => {
+    setEditingProjectId(null);
+    setEditingTitle('');
+  };
 
   // 4 Top Stats
   const stats = useMemo(() => {
@@ -165,13 +184,50 @@ export default function ProjectsPage() {
 
             return (
               <div key={project.id} className="project-card">
-              <div className="project-card-top">
-                <span className="project-card-date">{project.createdAt}</span>
-              </div>
+                <div className="project-card-top">
+                  <span className="project-card-date">{project.createdAt}</span>
+                  {editingProjectId !== project.id && (
+                    <button
+                      type="button"
+                      className="btn-rename-project"
+                      onClick={() => handleStartRename(project)}
+                      title="Rename project title"
+                    >
+                      <Pencil size={11} strokeWidth={2.4} />
+                      <span>Rename</span>
+                    </button>
+                  )}
+                </div>
 
-              <h3 className="project-card-title" title={project.title}>
-                {project.title}
-              </h3>
+                {editingProjectId === project.id ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveRename(project.id);
+                    }}
+                    className="project-rename-form"
+                  >
+                    <input
+                      type="text"
+                      className="project-rename-input"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="project-rename-btns">
+                      <button type="submit" className="btn-rename-save" title="Save title">
+                        <Check size={13} strokeWidth={2.8} />
+                      </button>
+                      <button type="button" className="btn-rename-cancel" onClick={handleCancelRename} title="Cancel">
+                        <X size={13} strokeWidth={2.8} />
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <h3 className="project-card-title" title={project.title}>
+                    {project.title}
+                  </h3>
+                )}
 
               {/* 4-Step Progress Line */}
               <div className="project-progress-container">

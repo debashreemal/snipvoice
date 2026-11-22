@@ -3502,6 +3502,87 @@
   color: var(--text-soft);
 }
 
+.btn-rename-project {
+  border: none;
+  background-color: var(--day-column);
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-rename-project:hover {
+  background-color: var(--sky-soft);
+  color: var(--text);
+}
+
+.project-rename-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.project-rename-input {
+  flex: 1;
+  background-color: var(--sky-baby);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.project-rename-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-rename-save {
+  border: none;
+  background-color: var(--approve);
+  color: var(--text);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-rename-save:hover {
+  background-color: var(--approve-hover);
+}
+
+.btn-rename-cancel {
+  border: none;
+  background-color: var(--day-column);
+  color: var(--text-soft);
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-rename-cancel:hover {
+  background-color: var(--reject);
+  color: var(--text);
+}
+
 .project-card-title {
   font-size: 17px;
   font-weight: 800;
