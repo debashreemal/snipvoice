@@ -195,12 +195,16 @@ export default function CaptionCard({ clipId, platform, projectId, isParentLoadi
           <button
             type="button"
             className="btn-save-edit"
-            onClick={() => saveCaptionEdit(projectId, clipId, platformId)}
+            onClick={() => {
+              saveCaptionEdit(projectId, clipId, platformId);
+              setJustSaved(true);
+              setTimeout(() => setJustSaved(false), 2000);
+            }}
             disabled={isParentLoading || isRegenerating}
             title="Save this edit to train your personal style model"
           >
             <Check size={14} strokeWidth={2.4} />
-            <span>{isEdited ? 'Update edit' : 'Save edit'}</span>
+            <span>{justSaved ? 'Saved to memory' : isEdited ? 'Update edit' : 'Save edit'}</span>
           </button>
 
           {/* Dedicated 1-Click Copy Paste Button */}
