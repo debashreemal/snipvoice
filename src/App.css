@@ -93,7 +93,7 @@
 
 .app-container {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px 1fr 340px;
   gap: 16px;
   padding: 0 16px 16px 16px;
   flex: 1;
@@ -222,7 +222,7 @@
   overflow-y: auto;
 }
 
-/* Learned Panel Card */
+/* Learned Panel Card (Right Corner) */
 .learned-card {
   background-color: var(--card-dark);
   color: var(--text-on-dark);
@@ -233,6 +233,40 @@
   flex-direction: column;
   gap: 16px;
   flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.learned-card .card-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.learned-card .card-heading {
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.learned-card .card-subheading {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.learned-card .learned-memory-list {
+  flex: 1;
+  max-height: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
 }
 
 .learned-card-header {
@@ -4279,6 +4313,25 @@
 
 .diff-edited {
   background-color: var(--sky-soft);
+}
+
+/* Responsive side panel collapse */
+@media (max-width: 1200px) {
+  .app-container {
+    grid-template-columns: 80px 1fr;
+  }
+  .side-panel {
+    display: none;
+  }
+}
+
+@media (min-width: 1201px) {
+  .brand-voice-page .brand-voice-memory-card {
+    display: none;
+  }
+  .brand-voice-page .brand-voice-top-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Mobile & Tablet Responsiveness */

@@ -50,6 +50,11 @@ export default function App() {
             </Routes>
           </main>
 
+          {/* Right side panel: Global Learned Memory */}
+          <aside className="side-panel">
+            <LearnedPanel />
+          </aside>
+
           {/* Ask SnipVoice sliding chat panel */}
           <ChatPanel />
         </div>
