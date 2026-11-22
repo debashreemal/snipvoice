@@ -93,7 +93,7 @@
 
 .app-container {
   display: grid;
-  grid-template-columns: 80px 1fr 340px;
+  grid-template-columns: 80px 1fr 270px;
   gap: 16px;
   padding: 0 16px 16px 16px;
   flex: 1;
@@ -228,10 +228,10 @@
   color: var(--text-on-dark);
   border-radius: var(--radius);
   border: none;
-  padding: 24px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex: 1;
   height: 100%;
   min-height: 0;
@@ -241,12 +241,12 @@
 .learned-card .card-section-header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .learned-card .card-heading {
   color: var(--white);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   margin: 0;
   letter-spacing: -0.02em;
@@ -254,9 +254,57 @@
 
 .learned-card .card-subheading {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.learned-card .memory-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.learned-card .memory-metric-box {
+  background-color: var(--card-dark-pill);
+  border-radius: 12px;
+  padding: 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.learned-card .metric-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.learned-card .metric-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.learned-card .empty-memory-text {
+  font-size: 12px;
+  color: var(--text-muted);
   line-height: 1.4;
   margin: 0;
+}
+
+.learned-card .memory-rule-item {
+  padding: 8px 10px;
+  gap: 8px;
+  border-radius: 10px;
+}
+
+.learned-card .memory-rule-text {
+  font-size: 12px;
 }
 
 .learned-card .learned-memory-list {
@@ -265,7 +313,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   scrollbar-width: thin;
 }
 
