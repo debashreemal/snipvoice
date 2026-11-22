@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -34,9 +34,9 @@ export default function NewProjectPage() {
 
   // Transcript tab state
   const [transcript, setTranscript] = useState('');
-  const [tone, setTone] = useState(brandVoice.tone || 'Direct');
-  const [wordsIUse, setWordsIUse] = useState(brandVoice.wordsIUse || DEFAULT_USE);
-  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice.wordsIAvoid || DEFAULT_AVOID);
+  const [tone, setTone] = useState(brandVoice?.tone || 'Direct');
+  const [wordsIUse, setWordsIUse] = useState(brandVoice?.wordsIUse || DEFAULT_USE);
+  const [wordsIAvoid, setWordsIAvoid] = useState(brandVoice?.wordsIAvoid || DEFAULT_AVOID);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
